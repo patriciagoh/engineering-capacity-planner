@@ -45,3 +45,18 @@ def test_total_demand_sums_ranges():
 def test_normalize_unknown_tshirt_size_raises():
     with pytest.raises(ValueError, match="size"):
         normalize_estimate(Estimate(fidelity=Fidelity.TSHIRT, size="XXL"))
+
+
+def test_normalize_person_months_missing_expected_raises():
+    with pytest.raises(ValueError, match="expected"):
+        normalize_estimate(Estimate(fidelity=Fidelity.PERSON_MONTHS))
+
+
+def test_normalize_sprint_allocation_missing_value_raises():
+    with pytest.raises(ValueError, match="sprint_person_months"):
+        normalize_estimate(Estimate(fidelity=Fidelity.SPRINT_ALLOCATION))
+
+
+def test_total_demand_empty_is_zero():
+    d = total_demand([])
+    assert (d.low, d.expected, d.high) == (0.0, 0.0, 0.0)
