@@ -2,7 +2,7 @@
 
 One person-month = 4 productive weeks of one full-time engineer.
 """
-from capacity_engine.models import Engineer, Team
+from capacity_engine.models import Engineer, OverheadCategory, Team
 from capacity_engine.multipliers import level_multiplier, onboarding_multiplier
 
 # Bucket-A always-on overhead -> baseline factor. See plan Task 4 note.
@@ -31,3 +31,16 @@ def gross_person_months(
         effective_capacity(e, team.id, baseline_factor) for e in roster
     )
     return total_effective * team.productive_weeks / WEEKS_PER_PERSON_MONTH
+
+
+def net_person_months(gross_pm: float, team: Team) -> float:
+    """Person-months left for roadmap deliverables after team reservations."""
+    total_reserved = 0.0
+    for cat in team.reservations:
+        if cat.level != "team":
+            raise ValueError(
+                f"reservation {cat.name!r} has level {cat.level!r}; "
+                "only 'team'-level categories may appear in reservations"
+            )
+        total_reserved += cat.fraction
+    return gross_pm * (1.0 - total_reserved)

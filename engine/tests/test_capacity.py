@@ -41,3 +41,28 @@ def test_gross_person_months_neutral_matches_sheet_formula():
     ]
     pm = gross_person_months(roster, team, baseline_factor=1.0)
     assert pm == pytest.approx(13.5)
+
+
+from capacity_engine.models import OverheadCategory
+from capacity_engine.capacity import net_person_months
+
+
+def test_net_person_months_subtracts_team_reservations():
+    team = Team(
+        id="t", name="Msg", productive_weeks=12,
+        reservations=[
+            OverheadCategory(name="KTLO", level="team", fraction=0.70),
+            OverheadCategory(name="PTO", level="team", fraction=0.05),
+        ],
+    )
+    # gross 10.0 -> reserve 75% -> 2.5 net
+    assert net_person_months(10.0, team) == pytest.approx(2.5)
+
+
+def test_net_person_months_rejects_individual_category_in_reservations():
+    team = Team(
+        id="t", name="Bad", productive_weeks=12,
+        reservations=[OverheadCategory(name="Meetings", level="individual", fraction=0.1)],
+    )
+    with pytest.raises(ValueError, match="individual"):
+        net_person_months(10.0, team)
