@@ -109,7 +109,8 @@ class Deliverable:
 
 @dataclass
 class Org:
-    """Root container. Groups omitted at engine level; teams carry a group_id."""
+    """Root container. Group/hierarchy roll-ups (director/VP scope) are deferred to
+    Plan 2; the engine operates over a flat set of teams for now."""
     teams: list[Team] = field(default_factory=list)
     engineers: list[Engineer] = field(default_factory=list)
     deliverables: list[Deliverable] = field(default_factory=list)
