@@ -888,7 +888,7 @@ Expected: FAIL — `ModuleNotFoundError: No module named 'capacity_engine.scenar
 import copy
 from dataclasses import dataclass
 
-from capacity_engine.models import Engineer, Org, OverheadCategory
+from capacity_engine.models import Engineer, Org, OverheadCategory, TeamAssignment
 
 
 @dataclass
@@ -904,9 +904,9 @@ class SetAvailability:
                     if a.team_id == self.team_id:
                         a.availability = self.availability
                         return
+                # Engineer has no prior assignment to this team: add one.
                 e.assignments.append(
-                    type(e.assignments[0])(self.team_id, self.availability)
-                    if e.assignments else None
+                    TeamAssignment(team_id=self.team_id, availability=self.availability)
                 )
                 return
         raise KeyError(f"unknown engineer: {self.engineer_id}")
