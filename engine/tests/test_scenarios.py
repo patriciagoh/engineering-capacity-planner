@@ -30,6 +30,17 @@ def test_set_availability():
     assert out.engineers[0].availability_on("t") == 0.5
 
 
+def test_set_availability_adds_assignment_when_none_exists():
+    # Engineer "a" has no assignment to team "t2"; SetAvailability should add one
+    # (regression: must append a real TeamAssignment, not None).
+    org = _org()
+    org.teams.append(Team(id="t2", name="T2", productive_weeks=12))
+    out = apply_scenario(org, [SetAvailability("a", "t2", 0.5)])
+    assert out.engineers[0].availability_on("t2") == 0.5
+    assert out.engineers[0].availability_on("t") == 1.0  # original assignment intact
+    assert all(a is not None for a in out.engineers[0].assignments)
+
+
 def test_set_reservation_updates_existing():
     out = apply_scenario(_org(), [SetReservation(team_id="t", name="KTLO", fraction=0.4)])
     assert out.team("t").reservations[0].fraction == 0.4
