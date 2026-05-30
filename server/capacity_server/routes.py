@@ -1,12 +1,12 @@
 """Endpoint handlers. The store is read from app.state."""
 from fastapi import APIRouter, HTTPException, Request
 
-from capacity_engine.planning import plan_team
+from capacity_engine.planning import plan_team, rollup_group
 from capacity_engine.scenarios import apply_scenario
 from capacity_engine.store import org_from_dict, org_to_dict
 from capacity_engine.validation import ValidationError, validate_org
 from capacity_server.schemas import change_from_dict
-from capacity_server.serialize import team_plan_to_dict
+from capacity_server.serialize import rollup_to_dict, team_plan_to_dict
 from capacity_server.state import OrgStore
 
 router = APIRouter()
@@ -43,6 +43,15 @@ def get_team_plan(team_id: str, request: Request) -> dict:
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=f"unknown team: {team_id}") from exc
     return team_plan_to_dict(plan)
+
+
+@router.get("/groups/{group_id}/rollup")
+def get_group_rollup(group_id: str, request: Request) -> dict:
+    try:
+        rollup = rollup_group(_store(request).get(), group_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"unknown group: {group_id}") from exc
+    return rollup_to_dict(rollup)
 
 
 @router.post("/teams/{team_id}/scenario")
