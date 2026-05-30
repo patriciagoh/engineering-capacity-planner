@@ -7,7 +7,9 @@ from capacity_engine.models import Engineer, Level, OnboardingState, TeamAssignm
 
 def change_from_dict(d: dict) -> Change:
     """Translate one change descriptor into an engine Change. Raises ValueError
-    on an unknown op or missing fields (handled as HTTP 400 by the caller)."""
+    on a non-object item, an unknown op, or missing fields (HTTP 400 by caller)."""
+    if not isinstance(d, dict):
+        raise ValueError(f"each change must be an object, got {type(d).__name__}")
     op = d.get("op")
     if op == "set_availability":
         return SetAvailability(

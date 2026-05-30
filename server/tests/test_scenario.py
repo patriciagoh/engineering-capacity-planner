@@ -30,3 +30,9 @@ def test_scenario_unknown_op_400(client):
     resp = client.post("/teams/msg/scenario",
                        json={"changes": [{"op": "teleport"}]})
     assert resp.status_code == 400
+
+
+def test_scenario_non_object_change_400(client):
+    # a malformed (non-object) change item must be 400, not 500
+    resp = client.post("/teams/msg/scenario", json={"changes": ["notadict"]})
+    assert resp.status_code == 400
