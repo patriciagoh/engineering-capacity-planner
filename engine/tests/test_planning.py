@@ -45,3 +45,32 @@ def test_plan_team_default_baseline_factor_threads_through():
 def test_plan_team_unknown_team_raises():
     with pytest.raises(KeyError):
         plan_team(_org(), "ghost")
+
+
+from capacity_engine.models import Group
+from capacity_engine.planning import rollup_group, GroupRollup
+
+
+def _two_team_org():
+    g = Group(id="exp", name="Experiences", parent_id=None)
+    msg = Team(id="msg", name="Msg", productive_weeks=12, group_id="exp")
+    email = Team(id="email", name="Email", productive_weeks=12, group_id="exp")
+    engs = [
+        Engineer(id="dia", name="Dia", level=Level.L3,
+                 assignments=[TeamAssignment("msg", 1.0)]),
+        Engineer(id="leah", name="Leah", level=Level.L3,
+                 assignments=[TeamAssignment("email", 1.0)]),
+    ]
+    return Org(teams=[msg, email], engineers=engs, groups=[g])
+
+
+def test_rollup_group_aggregates_member_teams():
+    org = _two_team_org()
+    rollup = rollup_group(org, "exp", baseline_factor=1.0)
+    assert isinstance(rollup, GroupRollup)
+    assert rollup.group_id == "exp"
+    assert {tp.team_id for tp in rollup.team_plans} == {"msg", "email"}
+    # each team gross = 1.0 * 12 / 4 = 3.0 ; total 6.0
+    assert rollup.total_gross_pm == pytest.approx(6.0)
+    assert rollup.total_net_pm == pytest.approx(6.0)  # no reservations
+    assert rollup.total_demand.expected == pytest.approx(0.0)  # no deliverables

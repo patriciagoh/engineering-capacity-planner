@@ -49,6 +49,33 @@ def validate_org(org: Org) -> None:
         _validate_category_list(t, "reservation", t.reservations)
         _validate_category_list(t, "ideal reservation", t.ideal_reservations)
 
+    group_ids = {g.id for g in org.groups}
+
+    for t in org.teams:
+        if t.group_id is not None and t.group_id not in group_ids:
+            raise ValidationError(
+                f"team {t.name!r}: group_id {t.group_id!r} refers to an unknown group"
+            )
+
+    for g in org.groups:
+        if g.parent_id is not None and g.parent_id not in group_ids:
+            raise ValidationError(
+                f"group {g.name!r}: parent_id {g.parent_id!r} refers to an unknown parent"
+            )
+
+    # Detect cycles by walking parent links from each group.
+    parent_of = {g.id: g.parent_id for g in org.groups}
+    for start in parent_of:
+        seen = set()
+        cur = start
+        while cur is not None:
+            if cur in seen:
+                raise ValidationError(
+                    f"group hierarchy has a cycle involving {start!r}"
+                )
+            seen.add(cur)
+            cur = parent_of.get(cur)
+
     engineer_ids = {e.id for e in org.engineers}
 
     for e in org.engineers:
