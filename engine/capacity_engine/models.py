@@ -76,6 +76,7 @@ class Team:
     reservations: list[OverheadCategory] = field(default_factory=list)
     # Optional "ideal" reservations for current-vs-ideal comparison.
     ideal_reservations: list[OverheadCategory] = field(default_factory=list)
+    group_id: Optional[str] = None
 
 
 @dataclass
@@ -108,19 +109,45 @@ class Deliverable:
 
 
 @dataclass
+class Group:
+    """A node in the org hierarchy (e.g. a director's or VP's span)."""
+    id: str
+    name: str
+    parent_id: Optional[str] = None  # None for the root group
+
+
+@dataclass
 class Org:
-    """Root container. Group/hierarchy roll-ups (director/VP scope) are deferred to
-    Plan 2; the engine operates over a flat set of teams for now."""
+    """Root container. Teams may belong to a Group; groups nest via parent_id."""
     teams: list[Team] = field(default_factory=list)
     engineers: list[Engineer] = field(default_factory=list)
     deliverables: list[Deliverable] = field(default_factory=list)
     quarter: Optional[Quarter] = None
+    groups: list["Group"] = field(default_factory=list)
 
     def team(self, team_id: str) -> Team:
         for t in self.teams:
             if t.id == team_id:
                 return t
         raise KeyError(f"unknown team: {team_id}")
+
+    def group(self, group_id: str) -> "Group":
+        for g in self.groups:
+            if g.id == group_id:
+                return g
+        raise KeyError(f"unknown group: {group_id}")
+
+    def teams_in_group(self, group_id: str) -> list[Team]:
+        """All teams whose group_id is `group_id` or any descendant group."""
+        descendants = {group_id}
+        changed = True
+        while changed:
+            changed = False
+            for g in self.groups:
+                if g.parent_id in descendants and g.id not in descendants:
+                    descendants.add(g.id)
+                    changed = True
+        return [t for t in self.teams if t.group_id in descendants]
 
     def engineers_on(self, team_id: str) -> list[Engineer]:
         return [e for e in self.engineers if e.availability_on(team_id) > 0]
