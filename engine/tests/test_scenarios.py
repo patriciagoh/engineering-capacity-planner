@@ -46,9 +46,27 @@ def test_set_reservation_updates_existing():
     assert out.team("t").reservations[0].fraction == 0.4
 
 
+def test_set_reservation_adds_new_when_absent():
+    out = apply_scenario(_org(), [SetReservation(team_id="t", name="On-call", fraction=0.1)])
+    names = {c.name: c for c in out.team("t").reservations}
+    assert "On-call" in names
+    assert names["On-call"].fraction == 0.1
+    assert names["On-call"].level == "team"
+
+
+def test_set_availability_unknown_engineer_raises():
+    with pytest.raises(KeyError, match="ghost"):
+        apply_scenario(_org(), [SetAvailability("ghost", "t", 0.5)])
+
+
 def test_remove_engineer():
     out = apply_scenario(_org(), [RemoveEngineer(engineer_id="a")])
     assert out.engineers == []
+
+
+def test_remove_unknown_engineer_raises():
+    with pytest.raises(KeyError, match="ghost"):
+        apply_scenario(_org(), [RemoveEngineer(engineer_id="ghost")])
 
 
 def test_add_engineer():

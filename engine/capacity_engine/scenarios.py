@@ -3,8 +3,16 @@
 """
 import copy
 from dataclasses import dataclass
+from typing import Protocol, runtime_checkable
 
 from capacity_engine.models import Engineer, Org, OverheadCategory, TeamAssignment
+
+
+@runtime_checkable
+class Change(Protocol):
+    """A scenario change applies itself to an Org in place."""
+
+    def apply(self, org: Org) -> None: ...
 
 
 @dataclass
@@ -50,7 +58,10 @@ class RemoveEngineer:
     engineer_id: str
 
     def apply(self, org: Org) -> None:
+        before = len(org.engineers)
         org.engineers = [e for e in org.engineers if e.id != self.engineer_id]
+        if len(org.engineers) == before:
+            raise KeyError(f"unknown engineer: {self.engineer_id}")
 
 
 @dataclass
@@ -61,8 +72,11 @@ class AddEngineer:
         org.engineers.append(copy.deepcopy(self.engineer))
 
 
-def apply_scenario(org: Org, changes: list) -> Org:
-    """Return a modified deep copy of `org` with all `changes` applied in order."""
+def apply_scenario(org: Org, changes: list[Change]) -> Org:
+    """Return a modified deep copy of `org` with all `changes` applied in order.
+
+    Changes may raise `KeyError` for unknown engineer/team IDs.
+    """
     out = copy.deepcopy(org)
     for change in changes:
         change.apply(out)
