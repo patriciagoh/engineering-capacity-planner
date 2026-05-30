@@ -1,0 +1,48 @@
+"""Convert engine result objects into JSON-able dicts for responses."""
+from capacity_engine.demand import DemandRange
+from capacity_engine.fit import FitResult
+from capacity_engine.planning import GroupRollup, TeamPlan
+from capacity_engine.risks import Risk
+
+
+def demand_to_dict(d: DemandRange) -> dict:
+    return {"low": d.low, "expected": d.expected, "high": d.high}
+
+
+def fit_to_dict(f: FitResult) -> dict:
+    return {
+        "net_pm": f.net_pm,
+        "demand": demand_to_dict(f.demand),
+        "optimistic_delta": f.optimistic_delta,
+        "expected_delta": f.expected_delta,
+        "pessimistic_delta": f.pessimistic_delta,
+        "is_oversubscribed_expected": f.is_oversubscribed_expected,
+    }
+
+
+def risk_to_dict(r: Risk) -> dict:
+    return {"kind": r.kind, "severity": r.severity.value, "detail": r.detail}
+
+
+def team_plan_to_dict(p: TeamPlan) -> dict:
+    return {
+        "team_id": p.team_id,
+        "team_name": p.team_name,
+        "gross_pm": p.gross_pm,
+        "net_pm": p.net_pm,
+        "demand": demand_to_dict(p.demand),
+        "fit": fit_to_dict(p.fit),
+        "risks": [risk_to_dict(r) for r in p.risks],
+    }
+
+
+def rollup_to_dict(r: GroupRollup) -> dict:
+    return {
+        "group_id": r.group_id,
+        "group_name": r.group_name,
+        "total_gross_pm": r.total_gross_pm,
+        "total_net_pm": r.total_net_pm,
+        "total_demand": demand_to_dict(r.total_demand),
+        "fit": fit_to_dict(r.fit),
+        "team_plans": [team_plan_to_dict(p) for p in r.team_plans],
+    }

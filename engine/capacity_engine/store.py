@@ -5,18 +5,23 @@ from pathlib import Path
 from capacity_engine.models import (
     Level, OnboardingState, Fidelity, DeliverableType,
     TeamAssignment, Engineer, OverheadCategory, Team, Quarter,
-    Estimate, Deliverable, Org,
+    Estimate, Deliverable, Org, Group,
 )
 
 
 def org_to_dict(org: Org) -> dict:
     return {
         "quarter": _quarter_to_dict(org.quarter) if org.quarter else None,
+        "groups": [
+            {"id": g.id, "name": g.name, "parent_id": g.parent_id}
+            for g in org.groups
+        ],
         "teams": [
             {
                 "id": t.id, "name": t.name, "productive_weeks": t.productive_weeks,
                 "reservations": [_cat_to_dict(c) for c in t.reservations],
                 "ideal_reservations": [_cat_to_dict(c) for c in t.ideal_reservations],
+                "group_id": t.group_id,
             }
             for t in org.teams
         ],
@@ -49,6 +54,7 @@ def org_from_dict(data: dict) -> Org:
             id=t["id"], name=t["name"], productive_weeks=t["productive_weeks"],
             reservations=[_cat_from_dict(c) for c in t.get("reservations", [])],
             ideal_reservations=[_cat_from_dict(c) for c in t.get("ideal_reservations", [])],
+            group_id=t.get("group_id"),
         )
         for t in data.get("teams", [])
     ]
@@ -73,7 +79,12 @@ def org_from_dict(data: dict) -> Org:
         for d in data.get("deliverables", [])
     ]
     quarter = _quarter_from_dict(data["quarter"]) if data.get("quarter") else None
-    return Org(teams=teams, engineers=engineers, deliverables=deliverables, quarter=quarter)
+    groups = [
+        Group(id=g["id"], name=g["name"], parent_id=g.get("parent_id"))
+        for g in data.get("groups", [])
+    ]
+    return Org(teams=teams, engineers=engineers, deliverables=deliverables,
+               quarter=quarter, groups=groups)
 
 
 def load_org(path: str | Path) -> Org:

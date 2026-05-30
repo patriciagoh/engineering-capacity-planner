@@ -1,0 +1,36 @@
+{
+  "quarter": {"id": "q2-2026", "label": "Q2 2026", "as_of": "2026-05-30"},
+  "groups": [
+    {"id": "eng", "name": "Engineering", "parent_id": null},
+    {"id": "exp", "name": "Experiences", "parent_id": "eng"}
+  ],
+  "teams": [
+    {"id": "msg", "name": "Messaging Experience", "productive_weeks": 12,
+     "group_id": "exp",
+     "reservations": [{"name": "KTLO", "level": "team", "fraction": 0.7}],
+     "ideal_reservations": [{"name": "KTLO", "level": "team", "fraction": 0.4}]},
+    {"id": "email", "name": "Email", "productive_weeks": 12, "group_id": "exp",
+     "reservations": [{"name": "KTLO", "level": "team", "fraction": 0.55}],
+     "ideal_reservations": []}
+  ],
+  "engineers": [
+    {"id": "dia", "name": "Dia", "level": "L3", "onboarding_state": "none",
+     "assignments": [{"team_id": "msg", "availability": 1.0}]},
+    {"id": "claudia", "name": "Claudia", "level": "L3", "onboarding_state": "none",
+     "assignments": [{"team_id": "msg", "availability": 1.0}]},
+    {"id": "albert", "name": "Albert", "level": "L2", "onboarding_state": "none",
+     "assignments": [{"team_id": "msg", "availability": 0.5}]},
+    {"id": "leah", "name": "Leah", "level": "L3", "onboarding_state": "none",
+     "assignments": [{"team_id": "email", "availability": 1.0}]},
+    {"id": "andy", "name": "Andy", "level": "L3", "onboarding_state": "none",
+     "assignments": [{"team_id": "email", "availability": 1.0}]}
+  ],
+  "deliverables": [
+    {"id": "sunco", "title": "SunCo CPaaS", "type": "deliverable",
+     "estimate": {"fidelity": "person_months", "low": 2.0, "expected": 2.5, "high": 3.5},
+     "priority": 1, "owner_ids": ["dia"], "jira_epic": "MSG-1"},
+    {"id": "twilio", "title": "GA Twilio Social", "type": "deliverable",
+     "estimate": {"fidelity": "tshirt", "size": "L"},
+     "priority": 2, "owner_ids": ["claudia"]}
+  ]
+}

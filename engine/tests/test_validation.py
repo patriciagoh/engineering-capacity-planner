@@ -136,3 +136,35 @@ def test_valid_org_with_deliverable_passes():
         owner_ids=["a"],
     ))
     validate_org(org)  # no raise
+
+
+from capacity_engine.models import Group
+
+
+def test_team_unknown_group_rejected():
+    org = _valid_org()
+    org.teams[0].group_id = "ghost"
+    with pytest.raises(ValidationError, match="unknown group"):
+        validate_org(org)
+
+
+def test_group_unknown_parent_rejected():
+    org = _valid_org()
+    org.groups.append(Group(id="g1", name="G1", parent_id="missing"))
+    with pytest.raises(ValidationError, match="unknown parent"):
+        validate_org(org)
+
+
+def test_group_cycle_rejected():
+    org = _valid_org()
+    org.groups.append(Group(id="a", name="A", parent_id="b"))
+    org.groups.append(Group(id="b", name="B", parent_id="a"))
+    with pytest.raises(ValidationError, match="cycle"):
+        validate_org(org)
+
+
+def test_group_self_loop_rejected():
+    org = _valid_org()
+    org.groups.append(Group(id="a", name="A", parent_id="a"))  # its own parent
+    with pytest.raises(ValidationError, match="cycle"):
+        validate_org(org)

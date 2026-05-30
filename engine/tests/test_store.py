@@ -66,3 +66,20 @@ def test_org_round_trips_through_dict():
     assert restored.engineers[0].onboarding_state is OnboardingState.NEW_HIRE_M2
     assert restored.deliverables[0].type is DeliverableType.DELIVERABLE
     assert restored.deliverables[0].estimate.fidelity is Fidelity.PERSON_MONTHS
+
+
+def test_org_round_trips_groups_and_group_id():
+    from capacity_engine.models import Group
+    org = Org(
+        teams=[Team(id="msg", name="Messaging Experience", productive_weeks=12,
+                    group_id="exp")],
+        engineers=[],
+        groups=[
+            Group(id="eng", name="Engineering", parent_id=None),
+            Group(id="exp", name="Experiences", parent_id="eng"),
+        ],
+    )
+    restored = org_from_dict(org_to_dict(org))
+    assert restored.team("msg").group_id == "exp"
+    assert {g.id for g in restored.groups} == {"eng", "exp"}
+    assert restored.group("exp").parent_id == "eng"
