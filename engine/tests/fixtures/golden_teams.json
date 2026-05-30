@@ -1,0 +1,9 @@
+{
+  "teams": [
+    {"id": "ext",   "name": "Extensibility",        "productive_weeks": 12, "availabilities": [1, 1, 1, 1, 0.5],            "expected_pm": 13.5},
+    {"id": "email", "name": "Email",                 "productive_weeks": 12, "availabilities": [1, 1, 0.5, 1],               "expected_pm": 10.5},
+    {"id": "msg",   "name": "Messaging Experience",  "productive_weeks": 12, "availabilities": [1, 1, 0.5],                  "expected_pm": 7.5},
+    {"id": "an",    "name": "Analytics",             "productive_weeks": 12, "availabilities": [1, 1, 1, 1],                 "expected_pm": 12.0},
+    {"id": "ch",    "name": "Channels and Handoffs", "productive_weeks": 10, "availabilities": [1, 1, 1, 1, 1, 1, 1, 0.2, 1, 0.5], "expected_pm": 21.8}
+  ]
+}
