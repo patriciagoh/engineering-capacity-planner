@@ -27,3 +27,15 @@ def test_post_invalid_org_returns_400(client):
     resp = client.post("/org", json=bad)
     assert resp.status_code == 400
     assert "individual" in resp.json()["detail"]
+
+
+def test_post_wrong_typed_field_returns_400(client):
+    # productive_weeks as a string -> engine raises TypeError; must be 400, not 500
+    bad = {
+        "teams": [{"id": "t", "name": "T", "productive_weeks": "lots",
+                   "reservations": [], "ideal_reservations": []}],
+        "engineers": [], "deliverables": [], "groups": [],
+    }
+    resp = client.post("/org", json=bad)
+    assert resp.status_code == 400
+    assert "malformed org" in resp.json()["detail"]
