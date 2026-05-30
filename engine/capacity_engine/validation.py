@@ -1,5 +1,12 @@
 """Input validation. Errors are plain-language so UI/skill can surface them."""
+from capacity_engine.demand import normalize_estimate
 from capacity_engine.models import Org, OverheadCategory, Team
+
+# Engineers may be loaned across teams, but their total availability cannot
+# exceed one full person — otherwise roll-ups would double-count them (the
+# anti-double-counting guarantee from the design). A small epsilon absorbs
+# float accumulation (e.g. 0.2 + 0.3 + 0.5).
+_AVAILABILITY_SUM_EPSILON = 1e-9
 
 
 class ValidationError(Exception):
@@ -42,7 +49,10 @@ def validate_org(org: Org) -> None:
         _validate_category_list(t, "reservation", t.reservations)
         _validate_category_list(t, "ideal reservation", t.ideal_reservations)
 
+    engineer_ids = {e.id for e in org.engineers}
+
     for e in org.engineers:
+        total_availability = 0.0
         for a in e.assignments:
             if a.team_id not in team_ids:
                 raise ValidationError(
@@ -53,3 +63,25 @@ def validate_org(org: Org) -> None:
                     f"engineer {e.name!r}: availability {a.availability} on "
                     f"team {a.team_id!r} out of range 0..1"
                 )
+            total_availability += a.availability
+        if total_availability > 1.0 + _AVAILABILITY_SUM_EPSILON:
+            raise ValidationError(
+                f"engineer {e.name!r}: total availability across teams is "
+                f"{total_availability:.2f}, which exceeds 1.0 (would double-count "
+                "them in roll-ups)"
+            )
+
+    for d in org.deliverables:
+        for oid in d.owner_ids:
+            if oid not in engineer_ids:
+                raise ValidationError(
+                    f"deliverable {d.title!r}: owner {oid!r} is not a known engineer"
+                )
+        # A malformed estimate (missing required fields for its fidelity) must be
+        # caught here, not deferred to a later compute-time ValueError.
+        try:
+            normalize_estimate(d.estimate)
+        except ValueError as exc:
+            raise ValidationError(
+                f"deliverable {d.title!r}: invalid estimate ({exc})"
+            ) from exc

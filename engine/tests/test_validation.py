@@ -1,6 +1,7 @@
 import pytest
 from capacity_engine.models import (
     Level, TeamAssignment, Engineer, Team, Org, OverheadCategory,
+    Deliverable, DeliverableType, Estimate, Fidelity,
 )
 from capacity_engine.validation import validate_org, ValidationError
 
@@ -86,3 +87,52 @@ def test_ideal_reservations_over_100_percent_rejected():
     )  # 1.2 > 1.0
     with pytest.raises(ValidationError, match="exceeds"):
         validate_org(org)
+
+
+def test_cross_team_availability_over_one_rejected():
+    org = _valid_org()
+    org.teams.append(Team(id="t2", name="T2", productive_weeks=12))
+    # engineer "a" is at 1.0 on t; add 0.5 on t2 -> 1.5 total
+    org.engineers[0].assignments.append(TeamAssignment("t2", 0.5))
+    with pytest.raises(ValidationError, match="exceeds 1.0"):
+        validate_org(org)
+
+
+def test_cross_team_availability_exactly_one_passes():
+    org = _valid_org()
+    org.teams.append(Team(id="t2", name="T2", productive_weeks=12))
+    org.engineers[0].assignments[0].availability = 0.5
+    org.engineers[0].assignments.append(TeamAssignment("t2", 0.5))  # 0.5 + 0.5 = 1.0
+    validate_org(org)  # no raise
+
+
+def test_deliverable_unknown_owner_rejected():
+    org = _valid_org()
+    org.deliverables.append(Deliverable(
+        id="d", title="Ghosted", type=DeliverableType.DELIVERABLE,
+        estimate=Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=1.0),
+        owner_ids=["nobody"],
+    ))
+    with pytest.raises(ValidationError, match="not a known engineer"):
+        validate_org(org)
+
+
+def test_deliverable_malformed_estimate_rejected():
+    org = _valid_org()
+    org.deliverables.append(Deliverable(
+        id="d", title="No Size", type=DeliverableType.DELIVERABLE,
+        estimate=Estimate(fidelity=Fidelity.TSHIRT),  # missing size
+        owner_ids=["a"],
+    ))
+    with pytest.raises(ValidationError, match="invalid estimate"):
+        validate_org(org)
+
+
+def test_valid_org_with_deliverable_passes():
+    org = _valid_org()
+    org.deliverables.append(Deliverable(
+        id="d", title="Real Work", type=DeliverableType.DELIVERABLE,
+        estimate=Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=1.5),
+        owner_ids=["a"],
+    ))
+    validate_org(org)  # no raise
