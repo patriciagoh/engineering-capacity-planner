@@ -56,3 +56,33 @@ def test_assignment_to_unknown_team_rejected():
     org.engineers[0].assignments.append(TeamAssignment("ghost", 0.5))
     with pytest.raises(ValidationError, match="unknown team"):
         validate_org(org)
+
+
+def test_negative_reservation_fraction_rejected():
+    org = _valid_org()
+    org.teams[0].reservations.append(
+        OverheadCategory(name="Weird", level="team", fraction=-0.1)
+    )
+    with pytest.raises(ValidationError, match="out of range"):
+        validate_org(org)
+
+
+def test_individual_category_in_ideal_reservations_rejected():
+    org = _valid_org()
+    org.teams[0].ideal_reservations.append(
+        OverheadCategory(name="Meetings", level="individual", fraction=0.1)
+    )
+    with pytest.raises(ValidationError, match="individual"):
+        validate_org(org)
+
+
+def test_ideal_reservations_over_100_percent_rejected():
+    org = _valid_org()
+    org.teams[0].ideal_reservations.append(
+        OverheadCategory(name="KTLO", level="team", fraction=0.7)
+    )
+    org.teams[0].ideal_reservations.append(
+        OverheadCategory(name="Support", level="team", fraction=0.5)
+    )  # 1.2 > 1.0
+    with pytest.raises(ValidationError, match="exceeds"):
+        validate_org(org)
