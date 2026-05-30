@@ -2,7 +2,6 @@
 from capacity_engine.scenarios import (
     AddEngineer, Change, RemoveEngineer, SetAvailability, SetReservation,
 )
-from capacity_engine.store import org_from_dict  # for engineer payloads if needed
 from capacity_engine.models import Engineer, Level, OnboardingState, TeamAssignment
 
 

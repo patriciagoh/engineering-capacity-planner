@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_scenario_drop_ktlo_increases_net(client):
     base = client.get("/teams/msg/plan").json()
     payload = {"changes": [
@@ -8,8 +11,11 @@ def test_scenario_drop_ktlo_increases_net(client):
     body = resp.json()
     # lowering KTLO from 0.7 to 0.4 raises net PM
     assert body["plan"]["net_pm"] > base["net_pm"]
-    assert body["delta"]["net_pm"] == __import__("pytest").approx(
-        body["plan"]["net_pm"] - base["net_pm"], abs=1e-6
+    # concrete expectation: gross (5.325) * (0.7 - 0.4) freed up = 1.5975 more net PM
+    assert body["delta"]["net_pm"] == pytest.approx(5.325 * (0.7 - 0.4), abs=1e-3)
+    # and the reported delta equals scenario.net - baseline.net the server returned
+    assert body["delta"]["net_pm"] == pytest.approx(
+        body["plan"]["net_pm"] - body["baseline"]["net_pm"], abs=1e-6
     )
 
 
