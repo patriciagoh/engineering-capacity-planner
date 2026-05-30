@@ -32,6 +32,14 @@ def test_plan_team_composes_pipeline():
     # net 1.5 - demand 2.0 = -0.5 expected -> oversubscribed
     assert plan.fit.expected_delta == pytest.approx(-0.5)
     assert any(r.kind == "oversubscription" for r in plan.risks)
+    assert isinstance(plan.risks, tuple)  # truly immutable result
+
+
+def test_plan_team_default_baseline_factor_threads_through():
+    # The server uses the default (0.71), so verify it propagates: gross =
+    # 1.0 effective * 0.71 * 12 / 4 = 2.13
+    plan = plan_team(_org(), "msg")
+    assert plan.gross_pm == pytest.approx(3.0 * 0.71)
 
 
 def test_plan_team_unknown_team_raises():
