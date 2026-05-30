@@ -161,3 +161,10 @@ def test_group_cycle_rejected():
     org.groups.append(Group(id="b", name="B", parent_id="a"))
     with pytest.raises(ValidationError, match="cycle"):
         validate_org(org)
+
+
+def test_group_self_loop_rejected():
+    org = _valid_org()
+    org.groups.append(Group(id="a", name="A", parent_id="a"))  # its own parent
+    with pytest.raises(ValidationError, match="cycle"):
+        validate_org(org)
