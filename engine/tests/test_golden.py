@@ -20,11 +20,17 @@ def _roster(team_id, availabilities):
     ]
 
 
-@pytest.mark.parametrize("case", json.loads(FIXTURE.read_text())["teams"])
+_CASES = json.loads(FIXTURE.read_text())["teams"]
+
+
+@pytest.mark.parametrize("case", _CASES, ids=[c["id"] for c in _CASES])
 def test_gross_pm_reproduces_sheet_total(case):
+    # `expected_pm` is the exact value these availabilities must produce. Where the
+    # sheet rounds for display (Channels: 21.75 vs displayed 21.8), the fixture also
+    # records `sheet_displayed_pm` and a note. Tolerance is tight to catch real drift.
     team = Team(id=case["id"], name=case["name"], productive_weeks=case["productive_weeks"])
     roster = _roster(case["id"], case["availabilities"])
     pm = gross_person_months(roster, team, baseline_factor=1.0)
-    assert pm == pytest.approx(case["expected_pm"], abs=0.06), (
-        f"{case['name']}: engine {pm:.2f} PM != sheet {case['expected_pm']} PM"
+    assert pm == pytest.approx(case["expected_pm"], abs=0.001), (
+        f"{case['name']}: engine {pm:.4f} PM != expected {case['expected_pm']} PM"
     )

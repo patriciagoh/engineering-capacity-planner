@@ -4,6 +4,6 @@
     {"id": "email", "name": "Email",                 "productive_weeks": 12, "availabilities": [1, 1, 0.5, 1],               "expected_pm": 10.5},
     {"id": "msg",   "name": "Messaging Experience",  "productive_weeks": 12, "availabilities": [1, 1, 0.5],                  "expected_pm": 7.5},
     {"id": "an",    "name": "Analytics",             "productive_weeks": 12, "availabilities": [1, 1, 1, 1],                 "expected_pm": 12.0},
-    {"id": "ch",    "name": "Channels and Handoffs", "productive_weeks": 10, "availabilities": [1, 1, 1, 1, 1, 1, 1, 0.2, 1, 0.5], "expected_pm": 21.8}
+    {"id": "ch",    "name": "Channels and Handoffs", "productive_weeks": 10, "availabilities": [1, 1, 1, 1, 1, 1, 1, 0.2, 1, 0.5], "expected_pm": 21.75, "sheet_displayed_pm": 21.8, "note": "Sheet displays 21.8; from these exact availabilities (sum 8.7) the engine computes 21.75. The 0.05 PM gap is a sheet rounding/headcount-display artifact (~0.02 FTE)."}
   ]
 }
