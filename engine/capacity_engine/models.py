@@ -138,7 +138,10 @@ class Org:
         raise KeyError(f"unknown group: {group_id}")
 
     def teams_in_group(self, group_id: str) -> list[Team]:
-        """All teams whose group_id is `group_id` or any descendant group."""
+        """All teams whose group_id is `group_id` or any descendant group.
+
+        Raises KeyError if `group_id` is unknown (consistent with `group`)."""
+        self.group(group_id)  # raises KeyError for an unknown group
         descendants = {group_id}
         changed = True
         while changed:
