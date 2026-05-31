@@ -51,12 +51,31 @@ export interface GroupRollup {
 export interface OrgDeliverable {
   id: string; title: string; type: string; priority: number;
   owner_ids: string[]; estimate: Record<string, unknown>;
+  target_sprint?: string | null;
+  jira_epic?: string | null;
 }
+
+export interface OrgEngineer {
+  id: string;
+  name: string;
+  level: string;
+  onboarding_state: string;
+  assignments: { team_id: string; availability: number }[];
+}
+
+export interface OrgTeam {
+  id: string;
+  name: string;
+  productive_weeks: number;
+  group_id: string | null;
+}
+
 export interface Org {
-  teams: { id: string; name: string; productive_weeks: number; group_id: string | null }[];
-  engineers: { id: string; name: string; level: string }[];
+  teams: OrgTeam[];
+  engineers: OrgEngineer[];
   deliverables: OrgDeliverable[];
   groups: { id: string; name: string; parent_id: string | null }[];
+  quarter?: { id: string; label: string; as_of: string } | null;
 }
 
 export type Change = Record<string, unknown> & { op: string };
