@@ -17,7 +17,13 @@ export function DirectorView() {
 
   useEffect(() => {
     if (!groupId) return;
-    getGroupRollup(groupId).then(setRollup).catch((e) => setError(String(e)));
+    setError(null);
+    setRollup(null);
+    let cancelled = false;
+    getGroupRollup(groupId)
+      .then((r) => { if (!cancelled) setRollup(r); })
+      .catch((e) => { if (!cancelled) setError(String(e)); });
+    return () => { cancelled = true; };
   }, [groupId]);
 
   if (error) return <div className="fit-risk">{error}</div>;
@@ -37,21 +43,23 @@ export function DirectorView() {
         <strong>{rollup.total_demand.expected.toFixed(1)} PM demand</strong> across{" "}
         {rollup.team_plans.length} teams
       </div>
-      <table className="card">
-        <thead><tr><th>Team</th><th>Net PM</th><th>Demand</th><th>Fit (expected)</th></tr></thead>
-        <tbody>
-          {rollup.team_plans.map((t) => (
-            <tr key={t.team_id}>
-              <td>{t.team_name}</td>
-              <td>{t.net_pm.toFixed(1)}</td>
-              <td>{t.demand.expected.toFixed(1)}</td>
-              <td className={t.fit.is_oversubscribed_expected ? "fit-risk" : "fit-ok"}>
-                {t.fit.expected_delta.toFixed(1)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="card">
+        <table>
+          <thead><tr><th>Team</th><th>Net PM</th><th>Demand</th><th>Fit (expected)</th></tr></thead>
+          <tbody>
+            {rollup.team_plans.map((t) => (
+              <tr key={t.team_id}>
+                <td>{t.team_name}</td>
+                <td>{t.net_pm.toFixed(1)}</td>
+                <td>{t.demand.expected.toFixed(1)}</td>
+                <td className={t.fit.is_oversubscribed_expected ? "fit-risk" : "fit-ok"}>
+                  {t.fit.expected_delta.toFixed(1)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
