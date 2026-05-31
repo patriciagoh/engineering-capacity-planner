@@ -6,7 +6,7 @@ from capacity_engine.scenarios import apply_scenario
 from capacity_engine.store import org_from_dict, org_to_dict
 from capacity_engine.validation import ValidationError, validate_org
 from capacity_server.schemas import change_from_dict
-from capacity_server.serialize import rollup_to_dict, team_plan_to_dict
+from capacity_server.serialize import rollup_to_dict, roster_to_dict, team_plan_to_dict
 from capacity_server.state import OrgStore
 
 router = APIRouter()
@@ -34,6 +34,14 @@ def put_org(payload: dict, request: Request) -> dict:
         raise HTTPException(status_code=400, detail=f"malformed org: {exc}") from exc
     _store(request).set(org)
     return {"status": "ok", "teams": len(org.teams)}
+
+
+@router.get("/teams/{team_id}/roster")
+def get_team_roster(team_id: str, request: Request) -> dict:
+    try:
+        return roster_to_dict(_store(request).get(), team_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=f"unknown team: {team_id}") from exc
 
 
 @router.get("/teams/{team_id}/plan")
