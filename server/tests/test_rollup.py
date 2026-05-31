@@ -6,7 +6,7 @@ def test_rollup_exp_group_sums_both_teams(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["group_id"] == "exp"
-    assert body["group_name"] == "Experiences"
+    assert body["group_name"] == "Product"
     assert {tp["team_id"] for tp in body["team_plans"]} == {"msg", "email"}
     msg = client.get("/teams/msg/plan").json()
     email = client.get("/teams/email/plan").json()

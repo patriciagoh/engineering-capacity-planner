@@ -3,7 +3,7 @@ import { FitBar } from "./FitBar";
 import type { TeamPlan } from "../api/types";
 
 const plan: TeamPlan = {
-  team_id: "msg", team_name: "Messaging Experience", gross_pm: 5.3, net_pm: 1.6,
+  team_id: "msg", team_name: "Checkout", gross_pm: 5.3, net_pm: 1.6,
   demand: { low: 2, expected: 3, high: 4 },
   fit: { net_pm: 1.6, demand: { low: 2, expected: 3, high: 4 },
     optimistic_delta: -0.4, expected_delta: -1.4, pessimistic_delta: -2.4,

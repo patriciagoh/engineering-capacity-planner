@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Build the deterministic Python capacity-planning engine — the single source of numeric truth that computes effective per-engineer capacity, team person-months, demand fit, scenarios, and risks, validated against the real Ada spreadsheet totals.
+**Goal:** Build the deterministic Python capacity-planning engine — the single source of numeric truth that computes effective per-engineer capacity, team person-months, demand fit, scenarios, and risks, validated against the source spreadsheet totals.
 
 **Architecture:** A pure-Python library (`capacity_engine`) of small, focused, side-effect-free modules. Data lives as JSON loaded into dataclasses. No web/UI/skill concerns here — those consume this engine later. Every formula is unit-tested; a golden-file test proves the engine reproduces known person-month totals from the source sheets.
 
@@ -127,8 +127,8 @@ from capacity_engine.models import (
 
 def test_engineer_constructs_with_assignments():
     eng = Engineer(
-        id="dia", name="Dia", level=Level.L3,
-        assignments=[TeamAssignment(team_id="msgexp", availability=1.0)],
+        id="maya", name="Maya", level=Level.L3,
+        assignments=[TeamAssignment(team_id="checkout", availability=1.0)],
         onboarding_state=OnboardingState.NONE,
     )
     assert eng.assignments[0].availability == 1.0
@@ -137,7 +137,7 @@ def test_engineer_constructs_with_assignments():
 
 def test_deliverable_with_tshirt_estimate():
     d = Deliverable(
-        id="suncoc", title="SunCo CPaaS", type=DeliverableType.DELIVERABLE,
+        id="chkout", title="Checkout Redesign", type=DeliverableType.DELIVERABLE,
         estimate=Estimate(fidelity=Fidelity.TSHIRT, size="L"),
         priority=1,
     )
@@ -448,8 +448,8 @@ def test_default_baseline_factor_value():
 
 
 def test_gross_person_months_neutral_matches_sheet_formula():
-    # Extensibility roster: [1,1,1,1,0.5] over 12 productive weeks -> 13.5 PM
-    team = Team(id="t", name="Ext", productive_weeks=12)
+    # Platform roster: [1,1,1,1,0.5] over 12 productive weeks -> 13.5 PM
+    team = Team(id="t", name="Platform", productive_weeks=12)
     roster = [
         _eng("a", Level.L3, 1.0), _eng("b", Level.L3, 1.0),
         _eng("c", Level.L3, 1.0), _eng("d", Level.L3, 1.0),
@@ -531,7 +531,7 @@ from capacity_engine.capacity import net_person_months
 
 def test_net_person_months_subtracts_team_reservations():
     team = Team(
-        id="t", name="Msg", productive_weeks=12,
+        id="t", name="Checkout", productive_weeks=12,
         reservations=[
             OverheadCategory(name="KTLO", level="team", fraction=0.70),
             OverheadCategory(name="PTO", level="team", fraction=0.05),
@@ -641,8 +641,8 @@ def test_normalize_sprint_allocation_uses_rolled_up_value():
 
 def test_total_demand_sums_ranges():
     delivs = [
-        _deliv(Estimate(fidelity=Fidelity.TSHIRT, size="L"), "a"),       # 1.5/2.0/3.0
-        _deliv(Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=1.0), "b"),  # 1/1/1
+        _deliv(Estimate(fidelity=Fidelity.TSHIRT, size="L"), "a"),            # 1.5/2.0/3.0
+        _deliv(Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=1.0), "b"), # 1/1/1
     ]
     d = total_demand(delivs)
     assert (d.low, d.expected, d.high) == pytest.approx((2.5, 3.0, 4.0))
@@ -1008,19 +1008,19 @@ def test_no_oversubscription_when_headroom():
 
 def test_spof_risk_when_single_owner_no_backup():
     team = Team(id="t", name="T", productive_weeks=12)
-    eng = Engineer(id="leah", name="Leah", level=Level.L3,
+    eng = Engineer(id="sara", name="Sara", level=Level.L3,
                    assignments=[TeamAssignment("t", 1.0)])
     deliv = Deliverable(
-        id="ard", title="Auto Reply Detection", type=DeliverableType.DELIVERABLE,
+        id="sr", title="Smart Replies", type=DeliverableType.DELIVERABLE,
         estimate=Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=1.8),
-        owner_ids=["leah"],
+        owner_ids=["sara"],
     )
     org = Org(teams=[team], engineers=[eng], deliverables=[deliv])
     fit = compute_fit(net_pm=10.0, demand=DemandRange(1.8, 1.8, 1.8))
     risks = detect_risks(org, team_id="t", fit=fit)
     spof = [r for r in risks if r.kind == "single_point_of_failure"]
     assert len(spof) == 1
-    assert "Leah" in spof[0].detail
+    assert "Sara" in spof[0].detail
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -1108,26 +1108,26 @@ from capacity_engine.store import org_to_dict, org_from_dict
 
 def test_org_round_trips_through_dict():
     eng = Engineer(
-        id="dia", name="Dia", level=Level.L3,
-        assignments=[TeamAssignment(team_id="msgexp", availability=1.0)],
+        id="maya", name="Maya", level=Level.L3,
+        assignments=[TeamAssignment(team_id="checkout", availability=1.0)],
         onboarding_state=OnboardingState.NONE,
     )
     team = Team(
-        id="msgexp", name="Messaging Experience", productive_weeks=12,
+        id="checkout", name="Checkout", productive_weeks=12,
         reservations=[OverheadCategory(name="KTLO", level="team", fraction=0.7)],
     )
     deliv = Deliverable(
-        id="suncoc", title="SunCo CPaaS", type=DeliverableType.DELIVERABLE,
+        id="chkout", title="Checkout Redesign", type=DeliverableType.DELIVERABLE,
         estimate=Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=2.5),
-        owner_ids=["dia"],
+        owner_ids=["maya"],
     )
     org = Org(teams=[team], engineers=[eng], deliverables=[deliv])
 
     restored = org_from_dict(org_to_dict(org))
-    assert restored.team("msgexp").reservations[0].fraction == 0.7
+    assert restored.team("checkout").reservations[0].fraction == 0.7
     assert restored.engineers[0].level is Level.L3
     assert restored.deliverables[0].estimate.expected == 2.5
-    assert restored.engineers[0].availability_on("msgexp") == 1.0
+    assert restored.engineers[0].availability_on("checkout") == 1.0
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -1419,19 +1419,19 @@ git commit -m "feat: add org validation (double-count, ranges, unknown teams)"
 This is the trust anchor: with neutral multipliers (baseline_factor=1.0, all L3,
 no onboarding), `gross_person_months` must reproduce the "Total Person Months
 Available" figures from Sheet 2. Values taken directly from the sheet:
-Extensibility = 13.5, Email = 10.5, Messaging Experience = 7.5, Analytics = 12.0,
-Channels & Handoffs (10 productive weeks) = 21.8 (±0.05 rounding).
+Platform = 13.5, Notifications = 10.5, Checkout = 7.5, Billing = 12.0,
+Onboarding (10 productive weeks) = 21.8 (±0.05 rounding).
 
 - [ ] **Step 1: Create `engine/tests/fixtures/golden_teams.json`**
 
 ```json
 {
   "teams": [
-    {"id": "ext",   "name": "Extensibility",        "productive_weeks": 12, "availabilities": [1, 1, 1, 1, 0.5],            "expected_pm": 13.5},
-    {"id": "email", "name": "Email",                 "productive_weeks": 12, "availabilities": [1, 1, 0.5, 1],               "expected_pm": 10.5},
-    {"id": "msg",   "name": "Messaging Experience",  "productive_weeks": 12, "availabilities": [1, 1, 0.5],                  "expected_pm": 7.5},
-    {"id": "an",    "name": "Analytics",             "productive_weeks": 12, "availabilities": [1, 1, 1, 1],                 "expected_pm": 12.0},
-    {"id": "ch",    "name": "Channels and Handoffs", "productive_weeks": 10, "availabilities": [1, 1, 1, 1, 1, 1, 1, 0.2, 1, 0.5], "expected_pm": 21.8}
+    {"id": "platform",      "name": "Platform",      "productive_weeks": 12, "availabilities": [1, 1, 1, 1, 0.5],            "expected_pm": 13.5},
+    {"id": "notifications", "name": "Notifications", "productive_weeks": 12, "availabilities": [1, 1, 0.5, 1],               "expected_pm": 10.5},
+    {"id": "checkout",      "name": "Checkout",      "productive_weeks": 12, "availabilities": [1, 1, 0.5],                  "expected_pm": 7.5},
+    {"id": "billing",       "name": "Billing",       "productive_weeks": 12, "availabilities": [1, 1, 1, 1],                 "expected_pm": 12.0},
+    {"id": "onboarding",    "name": "Onboarding",    "productive_weeks": 10, "availabilities": [1, 1, 1, 1, 1, 1, 1, 0.2, 1, 0.5], "expected_pm": 21.8}
   ]
 }
 ```

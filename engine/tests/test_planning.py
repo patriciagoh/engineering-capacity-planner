@@ -8,15 +8,15 @@ from capacity_engine.planning import plan_team, TeamPlan
 
 def _org():
     team = Team(
-        id="msg", name="Messaging Experience", productive_weeks=12,
+        id="msg", name="Checkout", productive_weeks=12,
         reservations=[OverheadCategory(name="KTLO", level="team", fraction=0.5)],
     )
-    eng = Engineer(id="dia", name="Dia", level=Level.L3,
+    eng = Engineer(id="maya", name="Maya", level=Level.L3,
                    assignments=[TeamAssignment("msg", 1.0)])
     deliv = Deliverable(
-        id="d1", title="SunCo", type=DeliverableType.DELIVERABLE,
+        id="d1", title="Checkout Redesign", type=DeliverableType.DELIVERABLE,
         estimate=Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=2.0),
-        owner_ids=["dia"],
+        owner_ids=["maya"],
     )
     return Org(teams=[team], engineers=[eng], deliverables=[deliv])
 
@@ -54,11 +54,11 @@ from capacity_engine.planning import rollup_group, GroupRollup
 def _two_team_org():
     g = Group(id="exp", name="Experiences", parent_id=None)
     msg = Team(id="msg", name="Msg", productive_weeks=12, group_id="exp")
-    email = Team(id="email", name="Email", productive_weeks=12, group_id="exp")
+    email = Team(id="email", name="Notifications", productive_weeks=12, group_id="exp")
     engs = [
-        Engineer(id="dia", name="Dia", level=Level.L3,
+        Engineer(id="maya", name="Maya", level=Level.L3,
                  assignments=[TeamAssignment("msg", 1.0)]),
-        Engineer(id="leah", name="Leah", level=Level.L3,
+        Engineer(id="sara", name="Sara", level=Level.L3,
                  assignments=[TeamAssignment("email", 1.0)]),
     ]
     return Org(teams=[msg, email], engineers=engs, groups=[g])

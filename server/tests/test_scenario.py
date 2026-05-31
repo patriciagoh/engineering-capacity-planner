@@ -20,7 +20,7 @@ def test_scenario_drop_ktlo_increases_net(client):
 
 
 def test_scenario_remove_engineer(client):
-    payload = {"changes": [{"op": "remove_engineer", "engineer_id": "albert"}]}
+    payload = {"changes": [{"op": "remove_engineer", "engineer_id": "tom"}]}
     resp = client.post("/teams/msg/scenario", json=payload)
     assert resp.status_code == 200
     assert resp.json()["plan"]["gross_pm"] < client.get("/teams/msg/plan").json()["gross_pm"]

@@ -1,7 +1,7 @@
 # Capacity Planning Tool & Skill — Design
 
 **Date:** 2026-05-29
-**Author:** Patricia Goh (EM, Messaging Experience) with Claude
+**Author:** EM (author) with Claude
 **Status:** Approved design, pending spec review
 
 ## Goal
@@ -17,7 +17,7 @@ different altitudes.
 
 ## Source material
 
-Three existing Ada spreadsheets, read in full, represent three layers of the same
+Three existing source spreadsheets, read in full, represent three layers of the same
 problem:
 
 1. **Per-engineer effective-capacity model** (bottom-up, hours). Base 160 hrs/mo,
@@ -113,7 +113,7 @@ same model at different roots.
 
 **Quarter / calendar**
 `productive_weeks` per team (the 12 → 6 figure; calendar-level downtime like winter
-break, Stradaganza, offsites lives here), sprint boundaries, "as-of" date so a plan
+break, the company offsite, offsites lives here), sprint boundaries, "as-of" date so a plan
 can be re-cut mid-quarter.
 
 **Overhead taxonomy**
@@ -153,7 +153,7 @@ rituals/reviews/etc.): team rituals & meetings, PR reviews, baseline cross-funct
 support, L&D, routine sick/PTO accrual. Reduces the per-engineer *baseline factor*.
 
 **Bucket B — Calendar-level downtime** (handled via `productive_weeks`, not as
-hours or %): holidays, winter break, Stradaganza, offsites, large planned-vacation
+hours or %): holidays, winter break, the company offsite, offsites, large planned-vacation
 clusters. Sheet 2 already does this ("12 weeks minus expected downtime"); we keep it
 there and remove it from Sheet 1's hour deductions so it isn't subtracted twice.
 
@@ -195,7 +195,7 @@ their real effective capacity, so the person-month total is honest and the
 per-engineer detail (Sheet 1) and team total (Sheet 2) can never disagree — one is
 literally the sum of the other.
 
-Every % and multiplier is **configurable per team** (Messaging Exp KTLO 70%, Email
+Every % and multiplier is **configurable per team** (Checkout KTLO 70%, Notifications
 55%) with sheet values as defaults. The engine preserves the **current-vs-ideal**
 comparison those two teams already track.
 
@@ -237,17 +237,17 @@ One model, three lenses. Scope = the subtree you own.
 
 **Manager view — author mode** (polished first):
 ```
-┌─ Messaging Experience · Q2 2026 ───────────── as of May 29 ┐
+┌─ Checkout · Q2 2026 ───────────────────────── as of May 29 ┐
 │ Roster (effective capacity)        Net roadmap: 5.3 PM      │
-│  Dia    L3   1.0  ████████ 0.82                             │
-│  Claudia L3  1.0  ████████ 0.82    Demand:      6.1 PM      │
-│  Albert L2   0.5  ███░ 0.38        ──────────────────────   │
-│  Shola  L3 onb-m1 0.25 █ 0.21      ⚠ −0.8 PM oversubscribed │
+│  Maya   L3   1.0  ████████ 0.82                             │
+│  Priya  L3   1.0  ████████ 0.82    Demand:      6.1 PM      │
+│  Tom    L2   0.5  ███░ 0.38        ──────────────────────   │
+│  Kofi   L3 onb-m1 0.25 █ 0.21      ⚠ −0.8 PM oversubscribed │
 │                                       (−1.4 pessimistic)    │
 │ Deliverables          est(PM)  fidelity   risk              │
-│  SunCo CPaaS           2.5     P-M         —                 │
-│  GA Twilio Social      1.8     T-shirt L   ⚠ wide estimate  │
-│  Auto Reply Detection  1.8     sprint      ⚠ SPOF: Leah     │
+│  Checkout Redesign     2.5     P-M         —                 │
+│  Search v2 GA          1.8     T-shirt L   ⚠ wide estimate  │
+│  Smart Replies         1.8     sprint      ⚠ SPOF: Sara     │
 │ [ + deliverable ]   [ run scenario ▸ ]   [ export ▸ ]       │
 └─────────────────────────────────────────────────────────────┘
 ```
@@ -263,15 +263,15 @@ deliverable-vs-KTLO-vs-overhead split across the org, biggest tradeoffs and risk
 rolled up. Investment signal, not editing.
 
 Leadership views are **read + scenario-only** (they can explore "what if we add 2
-headcount to Voice" but not edit a manager's roster), keeping authorship with
+headcount to Search" but not edit a manager's roster), keeping authorship with
 managers.
 
 ## Communication outputs & the Claude skill
 
 All four outputs are generated *from* the engine (numbers real, language from Claude):
 
-1. **Tradeoff scenarios** — "If GA Twilio Social ships by end of Q2, then either
-   Auto Reply Detection slips a sprint, or KTLO drops to 60%, or we add 1 L3." Each
+1. **Tradeoff scenarios** — "If Search v2 GA ships by end of Q2, then either
+   Smart Replies slips a sprint, or KTLO drops to 60%, or we add 1 L3." Each
    option carries its capacity math and side effects.
 2. **Capacity-vs-commitment one-pager** — headline fit + deliverable/KTLO/overhead
    split. The "are we being realistic?" artifact.
@@ -286,8 +286,8 @@ the read-only Drive scope today; confirm before writing back to Drive.
 **The Claude skill (`SKILL.md`)** — orchestration + judgment layer:
 - **Import/bootstrap:** read the three sheets once, map into the JSON model, show
   inferred mapping, let the user correct.
-- **Converse:** "plan Messaging Exp for Q2," "what if Shola ramps slower," "compare
-  against losing Albert" → translate to engine scenario calls, never hand-compute.
+- **Converse:** "plan Checkout for Q2," "what if Kofi ramps slower," "compare
+  against losing Tom" → translate to engine scenario calls, never hand-compute.
 - **Narrate:** turn engine output into the four artifacts at the right altitude.
 - **Validate & challenge:** flag double-booked loaned engineers, optimistic
   estimates, reservations drifting from ideal.
@@ -301,7 +301,7 @@ prioritize, and explain — never invent a figure.
 - **Engine unit tests** for every formula (multipliers, the 4-step pipeline, fit,
   each risk rule).
 - **Golden-file tests:** seed the engine from the actual sheets and assert it
-  reproduces known person-month totals (e.g. Extensibility = 13.5 PM, Email = 10.5
+  reproduces known person-month totals (e.g. Platform = 13.5 PM, Notifications = 10.5
   PM) — proving the unified model is faithful before it's trusted.
 - **Validation as first-class:** reject configs that double-count an overhead
   category, mis-sum cross-team availability, use negative productive weeks, or omit

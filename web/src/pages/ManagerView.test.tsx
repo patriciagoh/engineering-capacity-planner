@@ -7,33 +7,33 @@ vi.mock("../api/client");
 
 const org = {
   teams: [
-    { id: "msg", name: "Messaging Experience", productive_weeks: 12, group_id: "exp" },
-    { id: "email", name: "Email", productive_weeks: 12, group_id: "exp" },
+    { id: "msg", name: "Checkout", productive_weeks: 12, group_id: "exp" },
+    { id: "email", name: "Notifications", productive_weeks: 12, group_id: "exp" },
   ],
   engineers: [
-    { id: "dia", name: "Dia", level: "L3", onboarding_state: "none",
+    { id: "maya", name: "Maya", level: "L3", onboarding_state: "none",
       assignments: [{ team_id: "msg", availability: 1 }] },
-    { id: "leah", name: "Leah", level: "L3", onboarding_state: "none",
+    { id: "sara", name: "Sara", level: "L3", onboarding_state: "none",
       assignments: [{ team_id: "email", availability: 1 }] },
   ],
   deliverables: [
-    { id: "sunco", title: "SunCo CPaaS", type: "deliverable", priority: 1, owner_ids: ["dia"],
+    { id: "sunco", title: "Checkout Redesign", type: "deliverable", priority: 1, owner_ids: ["maya"],
       estimate: { fidelity: "person_months", expected: 2.5 } },
-    { id: "ingress", title: "ZD Ingress", type: "deliverable", priority: 1, owner_ids: ["leah"],
+    { id: "ingress", title: "Webhook Intake", type: "deliverable", priority: 1, owner_ids: ["sara"],
       estimate: { fidelity: "person_months", expected: 1.5 } },
   ],
   groups: [],
 };
 const plan = {
-  team_id: "msg", team_name: "Messaging Experience", gross_pm: 5.3, net_pm: 1.6,
+  team_id: "msg", team_name: "Checkout", gross_pm: 5.3, net_pm: 1.6,
   demand: { low: 2, expected: 3, high: 4 },
   fit: { net_pm: 1.6, demand: { low: 2, expected: 3, high: 4 },
     optimistic_delta: -0.4, expected_delta: -1.4, pessimistic_delta: -2.4,
     is_oversubscribed_expected: true },
   risks: [{ kind: "oversubscription", severity: "high", detail: "Over by 1.4 PM" }],
 };
-const roster = { team_id: "msg", team_name: "Messaging Experience",
-  roster: [{ engineer_id: "dia", name: "Dia", level: "L3", onboarding_state: "none",
+const roster = { team_id: "msg", team_name: "Checkout",
+  roster: [{ engineer_id: "maya", name: "Maya", level: "L3", onboarding_state: "none",
     availability: 1, effective_capacity: 0.71 }] };
 
 beforeEach(() => {
@@ -44,15 +44,15 @@ beforeEach(() => {
 
 test("loads and renders the team plan, roster, deliverables, and risks", async () => {
   render(<ManagerView />);
-  expect(await screen.findByText("Dia")).toBeInTheDocument();
+  expect(await screen.findByText("Maya")).toBeInTheDocument();
   await waitFor(() => expect(screen.getByText(/1\.6 PM net/)).toBeInTheDocument());
-  expect(screen.getByText("SunCo CPaaS")).toBeInTheDocument();
+  expect(screen.getByText("Checkout Redesign")).toBeInTheDocument();
   expect(screen.getByText(/Over by 1.4 PM/)).toBeInTheDocument();
 });
 
 test("scopes the deliverables list to the selected team", async () => {
   render(<ManagerView />);
   // msg is the default team; only msg-owned deliverables should show
-  expect(await screen.findByText("SunCo CPaaS")).toBeInTheDocument();
-  expect(screen.queryByText("ZD Ingress")).not.toBeInTheDocument(); // Email's, not Messaging's
+  expect(await screen.findByText("Checkout Redesign")).toBeInTheDocument();
+  expect(screen.queryByText("Webhook Intake")).not.toBeInTheDocument(); // Notifications's, not Checkout's
 });

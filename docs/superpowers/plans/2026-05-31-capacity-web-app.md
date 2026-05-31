@@ -59,18 +59,18 @@ capacity-planning/
 
 File: `server/tests/test_roster.py`
 ```python
-def test_roster_msg_effective_capacity(client):
-    resp = client.get("/teams/msg/roster")
+def test_roster_checkout_effective_capacity(client):
+    resp = client.get("/teams/checkout/roster")
     assert resp.status_code == 200
     body = resp.json()
     rows = {r["engineer_id"]: r for r in body["roster"]}
-    assert set(rows) == {"dia", "claudia", "albert"}
-    # Dia: L3 (1.0) x none (1.0) x avail 1.0 x 0.71 baseline = 0.71
-    assert rows["dia"]["effective_capacity"] == __import__("pytest").approx(0.71, abs=1e-3)
-    # Albert: L2 (1.0) x avail 0.5 x 0.71 = 0.355
-    assert rows["albert"]["effective_capacity"] == __import__("pytest").approx(0.355, abs=1e-3)
-    assert rows["dia"]["level"] == "L3"
-    assert rows["albert"]["availability"] == __import__("pytest").approx(0.5)
+    assert set(rows) == {"maya", "priya", "tom"}
+    # Maya: L3 (1.0) x none (1.0) x avail 1.0 x 0.71 baseline = 0.71
+    assert rows["maya"]["effective_capacity"] == __import__("pytest").approx(0.71, abs=1e-3)
+    # Tom: L2 (1.0) x avail 0.5 x 0.71 = 0.355
+    assert rows["tom"]["effective_capacity"] == __import__("pytest").approx(0.355, abs=1e-3)
+    assert rows["maya"]["level"] == "L3"
+    assert rows["tom"]["availability"] == __import__("pytest").approx(0.5)
 
 
 def test_roster_unknown_team_404(client):
@@ -157,8 +157,8 @@ from capacity_server.app_seeded import create_seeded_app
 def test_seeded_app_has_sample_org():
     c = TestClient(create_seeded_app())
     body = c.get("/org").json()
-    assert {t["id"] for t in body["teams"]} == {"msg", "email"}
-    assert c.get("/teams/msg/plan").status_code == 200
+    assert {t["id"] for t in body["teams"]} == {"checkout", "notifications"}
+    assert c.get("/teams/checkout/plan").status_code == 200
 ```
 
 - [ ] **Step 2: Run to verify failure**
@@ -443,8 +443,8 @@ test("getTeamPlan fetches and returns the plan", async () => {
 });
 
 test("getTeamRoster fetches roster rows", async () => {
-  const body = { team_id: "msg", team_name: "Msg",
-    roster: [{ engineer_id: "dia", name: "Dia", level: "L3",
+  const body = { team_id: "checkout", team_name: "Checkout",
+    roster: [{ engineer_id: "maya", name: "Maya", level: "L3",
       onboarding_state: "none", availability: 1, effective_capacity: 0.71 }] };
   vi.stubGlobal("fetch", mockFetch(body));
   const out = await getTeamRoster("msg");
@@ -609,7 +609,7 @@ import { FitBar } from "./FitBar";
 import type { TeamPlan } from "../api/types";
 
 const plan: TeamPlan = {
-  team_id: "msg", team_name: "Messaging Experience", gross_pm: 5.3, net_pm: 1.6,
+  team_id: "checkout", team_name: "Checkout", gross_pm: 5.3, net_pm: 1.6,
   demand: { low: 2, expected: 3, high: 4 },
   fit: { net_pm: 1.6, demand: { low: 2, expected: 3, high: 4 },
     optimistic_delta: -0.4, expected_delta: -1.4, pessimistic_delta: -2.4,
@@ -698,14 +698,14 @@ import { RosterTable } from "./RosterTable";
 import type { RosterRow } from "../api/types";
 
 const rows: RosterRow[] = [
-  { engineer_id: "dia", name: "Dia", level: "L3", onboarding_state: "none", availability: 1, effective_capacity: 0.71 },
-  { engineer_id: "albert", name: "Albert", level: "L2", onboarding_state: "none", availability: 0.5, effective_capacity: 0.355 },
+  { engineer_id: "maya", name: "Maya", level: "L3", onboarding_state: "none", availability: 1, effective_capacity: 0.71 },
+  { engineer_id: "tom", name: "Tom", level: "L2", onboarding_state: "none", availability: 0.5, effective_capacity: 0.355 },
 ];
 
 test("renders each engineer with effective capacity", () => {
   render(<RosterTable rows={rows} />);
-  expect(screen.getByText("Dia")).toBeInTheDocument();
-  expect(screen.getByText("Albert")).toBeInTheDocument();
+  expect(screen.getByText("Maya")).toBeInTheDocument();
+  expect(screen.getByText("Tom")).toBeInTheDocument();
   expect(screen.getByText("0.71")).toBeInTheDocument();
   expect(screen.getByText("0.36")).toBeInTheDocument(); // 0.355 rounded
 });
@@ -718,15 +718,15 @@ import { DeliverablesList } from "./DeliverablesList";
 import type { OrgDeliverable } from "../api/types";
 
 const delivs: OrgDeliverable[] = [
-  { id: "sunco", title: "SunCo CPaaS", type: "deliverable", priority: 1, owner_ids: ["dia"],
+  { id: "checkout-redesign", title: "Checkout Redesign", type: "deliverable", priority: 1, owner_ids: ["maya"],
     estimate: { fidelity: "person_months", expected: 2.5 } },
-  { id: "tw", title: "GA Twilio", type: "deliverable", priority: 2, owner_ids: ["claudia"],
+  { id: "search-v2", title: "Search v2 GA", type: "deliverable", priority: 2, owner_ids: ["priya"],
     estimate: { fidelity: "tshirt", size: "L" } },
 ];
 
 test("renders deliverable titles and fidelity", () => {
   render(<DeliverablesList deliverables={delivs} />);
-  expect(screen.getByText("SunCo CPaaS")).toBeInTheDocument();
+  expect(screen.getByText("Checkout Redesign")).toBeInTheDocument();
   expect(screen.getByText(/person_months/)).toBeInTheDocument();
   expect(screen.getByText(/tshirt/)).toBeInTheDocument();
 });
@@ -973,22 +973,22 @@ import * as api from "../api/client";
 vi.mock("../api/client");
 
 const org = {
-  teams: [{ id: "msg", name: "Messaging Experience", productive_weeks: 12, group_id: "exp" }],
+  teams: [{ id: "checkout", name: "Checkout", productive_weeks: 12, group_id: "exp" }],
   engineers: [], deliverables: [
-    { id: "sunco", title: "SunCo CPaaS", type: "deliverable", priority: 1, owner_ids: ["dia"],
+    { id: "checkout-redesign", title: "Checkout Redesign", type: "deliverable", priority: 1, owner_ids: ["maya"],
       estimate: { fidelity: "person_months", expected: 2.5 } }],
   groups: [],
 };
 const plan = {
-  team_id: "msg", team_name: "Messaging Experience", gross_pm: 5.3, net_pm: 1.6,
+  team_id: "checkout", team_name: "Checkout", gross_pm: 5.3, net_pm: 1.6,
   demand: { low: 2, expected: 3, high: 4 },
   fit: { net_pm: 1.6, demand: { low: 2, expected: 3, high: 4 },
     optimistic_delta: -0.4, expected_delta: -1.4, pessimistic_delta: -2.4,
     is_oversubscribed_expected: true },
   risks: [{ kind: "oversubscription", severity: "high", detail: "Over by 1.4 PM" }],
 };
-const roster = { team_id: "msg", team_name: "Messaging Experience",
-  roster: [{ engineer_id: "dia", name: "Dia", level: "L3", onboarding_state: "none",
+const roster = { team_id: "checkout", team_name: "Checkout",
+  roster: [{ engineer_id: "maya", name: "Maya", level: "L3", onboarding_state: "none",
     availability: 1, effective_capacity: 0.71 }] };
 
 beforeEach(() => {
@@ -999,9 +999,9 @@ beforeEach(() => {
 
 test("loads and renders the team plan, roster, deliverables, and risks", async () => {
   render(<ManagerView />);
-  expect(await screen.findByText("Dia")).toBeInTheDocument();
+  expect(await screen.findByText("Maya")).toBeInTheDocument();
   await waitFor(() => expect(screen.getByText(/1\.6 PM net/)).toBeInTheDocument());
-  expect(screen.getByText("SunCo CPaaS")).toBeInTheDocument();
+  expect(screen.getByText("Checkout Redesign")).toBeInTheDocument();
   expect(screen.getByText(/Over by 1.4 PM/)).toBeInTheDocument();
 });
 ```
@@ -1111,11 +1111,11 @@ const rollup = {
     optimistic_delta: -0.5, expected_delta: -2.5, pessimistic_delta: -4.5,
     is_oversubscribed_expected: true },
   team_plans: [
-    { team_id: "msg", team_name: "Messaging Experience", gross_pm: 5.3, net_pm: 1.6,
+    { team_id: "checkout", team_name: "Checkout", gross_pm: 5.3, net_pm: 1.6,
       demand: { low: 2, expected: 3, high: 4 },
       fit: { net_pm: 1.6, demand: { low: 2, expected: 3, high: 4 }, optimistic_delta: -0.4,
         expected_delta: -1.4, pessimistic_delta: -2.4, is_oversubscribed_expected: true }, risks: [] },
-    { team_id: "email", team_name: "Email", gross_pm: 4.3, net_pm: 1.9,
+    { team_id: "notifications", team_name: "Notifications", gross_pm: 4.3, net_pm: 1.9,
       demand: { low: 2, expected: 3, high: 4 },
       fit: { net_pm: 1.9, demand: { low: 2, expected: 3, high: 4 }, optimistic_delta: -0.1,
         expected_delta: -1.1, pessimistic_delta: -2.1, is_oversubscribed_expected: true }, risks: [] },
@@ -1129,8 +1129,8 @@ beforeEach(() => {
 
 test("renders a per-team roll-up grid with totals", async () => {
   render(<DirectorView />);
-  expect(await screen.findByText("Messaging Experience")).toBeInTheDocument();
-  expect(screen.getByText("Email")).toBeInTheDocument();
+  expect(await screen.findByText("Checkout")).toBeInTheDocument();
+  expect(screen.getByText("Notifications")).toBeInTheDocument();
   expect(screen.getByText(/3\.5 PM net/)).toBeInTheDocument(); // group total
 });
 ```
@@ -1267,7 +1267,7 @@ Run the API seeded entrypoint and a production build preview:
 cd server && . .venv/bin/activate && (uvicorn 'capacity_server.app_seeded:create_seeded_app' --factory --port 8000 &) ; sleep 3
 cd ../web && npm run build
 ```
-Confirm `npm run build` succeeds (tsc + vite build with no type errors). Then `curl localhost:8000/teams/msg/roster` returns Dia/Claudia/Albert with effective_capacity values. Kill the uvicorn. (Interactive browser check is optional but recommended: `npm run dev` and click Manager/Director.)
+Confirm `npm run build` succeeds (tsc + vite build with no type errors). Then `curl localhost:8000/teams/checkout/roster` returns Maya/Priya/Tom with effective_capacity values. Kill the uvicorn. (Interactive browser check is optional but recommended: `npm run dev` and click Manager/Director.)
 
 - [ ] **Step 9: Commit**
 

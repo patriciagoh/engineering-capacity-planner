@@ -50,7 +50,7 @@ capacity-planning/
       test_scenario.py
       test_rollup.py
     data/
-      sample_org.json  # NEW: a small seed org (Messaging Exp + Email under a group)
+      sample_org.json  # NEW: a small seed org (Checkout + Notifications under a group)
 ```
 
 ---
@@ -77,23 +77,23 @@ from capacity_engine.planning import plan_team, TeamPlan
 
 def _org():
     team = Team(
-        id="msg", name="Messaging Experience", productive_weeks=12,
+        id="checkout", name="Checkout", productive_weeks=12,
         reservations=[OverheadCategory(name="KTLO", level="team", fraction=0.5)],
     )
-    eng = Engineer(id="dia", name="Dia", level=Level.L3,
-                   assignments=[TeamAssignment("msg", 1.0)])
+    eng = Engineer(id="maya", name="Maya", level=Level.L3,
+                   assignments=[TeamAssignment("checkout", 1.0)])
     deliv = Deliverable(
-        id="d1", title="SunCo", type=DeliverableType.DELIVERABLE,
+        id="d1", title="Checkout Redesign", type=DeliverableType.DELIVERABLE,
         estimate=Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=2.0),
-        owner_ids=["dia"],
+        owner_ids=["maya"],
     )
     return Org(teams=[team], engineers=[eng], deliverables=[deliv])
 
 
 def test_plan_team_composes_pipeline():
-    plan = plan_team(_org(), "msg", baseline_factor=1.0)
+    plan = plan_team(_org(), "checkout", baseline_factor=1.0)
     assert isinstance(plan, TeamPlan)
-    assert plan.team_id == "msg"
+    assert plan.team_id == "checkout"
     # gross = 1.0 * 12 / 4 = 3.0 ; net = 3.0 * (1 - 0.5) = 1.5
     assert plan.gross_pm == pytest.approx(3.0)
     assert plan.net_pm == pytest.approx(1.5)
@@ -184,7 +184,7 @@ git commit -m "feat(engine): add plan_team orchestration helper"
 def test_org_round_trips_groups_and_group_id():
     from capacity_engine.models import Group
     org = Org(
-        teams=[Team(id="msg", name="Messaging Experience", productive_weeks=12,
+        teams=[Team(id="checkout", name="Checkout", productive_weeks=12,
                     group_id="exp")],
         engineers=[],
         groups=[
@@ -193,7 +193,7 @@ def test_org_round_trips_groups_and_group_id():
         ],
     )
     restored = org_from_dict(org_to_dict(org))
-    assert restored.team("msg").group_id == "exp"
+    assert restored.team("checkout").group_id == "exp"
     assert {g.id for g in restored.groups} == {"eng", "exp"}
     assert restored.group("exp").parent_id == "eng"
 ```
@@ -396,15 +396,15 @@ from capacity_engine.planning import rollup_group, GroupRollup
 
 def _two_team_org():
     g = Group(id="exp", name="Experiences", parent_id=None)
-    msg = Team(id="msg", name="Msg", productive_weeks=12, group_id="exp")
-    email = Team(id="email", name="Email", productive_weeks=12, group_id="exp")
+    checkout = Team(id="checkout", name="Checkout", productive_weeks=12, group_id="exp")
+    notifications = Team(id="notifications", name="Notifications", productive_weeks=12, group_id="exp")
     engs = [
-        Engineer(id="dia", name="Dia", level=Level.L3,
-                 assignments=[TeamAssignment("msg", 1.0)]),
-        Engineer(id="leah", name="Leah", level=Level.L3,
-                 assignments=[TeamAssignment("email", 1.0)]),
+        Engineer(id="maya", name="Maya", level=Level.L3,
+                 assignments=[TeamAssignment("checkout", 1.0)]),
+        Engineer(id="sara", name="Sara", level=Level.L3,
+                 assignments=[TeamAssignment("notifications", 1.0)]),
     ]
-    return Org(teams=[msg, email], engineers=engs, groups=[g])
+    return Org(teams=[checkout, notifications], engineers=engs, groups=[g])
 
 
 def test_rollup_group_aggregates_member_teams():
@@ -412,7 +412,7 @@ def test_rollup_group_aggregates_member_teams():
     rollup = rollup_group(org, "exp", baseline_factor=1.0)
     assert isinstance(rollup, GroupRollup)
     assert rollup.group_id == "exp"
-    assert {tp.team_id for tp in rollup.team_plans} == {"msg", "email"}
+    assert {tp.team_id for tp in rollup.team_plans} == {"checkout", "notifications"}
     # each team gross = 1.0 * 12 / 4 = 3.0 ; total 6.0
     assert rollup.total_gross_pm == pytest.approx(6.0)
     assert rollup.total_net_pm == pytest.approx(6.0)  # no reservations
@@ -614,33 +614,33 @@ git commit -m "feat(server): scaffold FastAPI app with health endpoint"
     {"id": "exp", "name": "Experiences", "parent_id": "eng"}
   ],
   "teams": [
-    {"id": "msg", "name": "Messaging Experience", "productive_weeks": 12,
+    {"id": "checkout", "name": "Checkout", "productive_weeks": 12,
      "group_id": "exp",
      "reservations": [{"name": "KTLO", "level": "team", "fraction": 0.7}],
      "ideal_reservations": [{"name": "KTLO", "level": "team", "fraction": 0.4}]},
-    {"id": "email", "name": "Email", "productive_weeks": 12, "group_id": "exp",
+    {"id": "notifications", "name": "Notifications", "productive_weeks": 12, "group_id": "exp",
      "reservations": [{"name": "KTLO", "level": "team", "fraction": 0.55}],
      "ideal_reservations": []}
   ],
   "engineers": [
-    {"id": "dia", "name": "Dia", "level": "L3", "onboarding_state": "none",
-     "assignments": [{"team_id": "msg", "availability": 1.0}]},
-    {"id": "claudia", "name": "Claudia", "level": "L3", "onboarding_state": "none",
-     "assignments": [{"team_id": "msg", "availability": 1.0}]},
-    {"id": "albert", "name": "Albert", "level": "L2", "onboarding_state": "none",
-     "assignments": [{"team_id": "msg", "availability": 0.5}]},
-    {"id": "leah", "name": "Leah", "level": "L3", "onboarding_state": "none",
-     "assignments": [{"team_id": "email", "availability": 1.0}]},
-    {"id": "andy", "name": "Andy", "level": "L3", "onboarding_state": "none",
-     "assignments": [{"team_id": "email", "availability": 1.0}]}
+    {"id": "maya", "name": "Maya", "level": "L3", "onboarding_state": "none",
+     "assignments": [{"team_id": "checkout", "availability": 1.0}]},
+    {"id": "priya", "name": "Priya", "level": "L3", "onboarding_state": "none",
+     "assignments": [{"team_id": "checkout", "availability": 1.0}]},
+    {"id": "tom", "name": "Tom", "level": "L2", "onboarding_state": "none",
+     "assignments": [{"team_id": "checkout", "availability": 0.5}]},
+    {"id": "sara", "name": "Sara", "level": "L3", "onboarding_state": "none",
+     "assignments": [{"team_id": "notifications", "availability": 1.0}]},
+    {"id": "ben", "name": "Ben", "level": "L3", "onboarding_state": "none",
+     "assignments": [{"team_id": "notifications", "availability": 1.0}]}
   ],
   "deliverables": [
-    {"id": "sunco", "title": "SunCo CPaaS", "type": "deliverable",
+    {"id": "checkout-redesign", "title": "Checkout Redesign", "type": "deliverable",
      "estimate": {"fidelity": "person_months", "low": 2.0, "expected": 2.5, "high": 3.5},
-     "priority": 1, "owner_ids": ["dia"], "jira_epic": "MSG-1"},
-    {"id": "twilio", "title": "GA Twilio Social", "type": "deliverable",
+     "priority": 1, "owner_ids": ["maya"], "jira_epic": "CHK-1"},
+    {"id": "search-v2", "title": "Search v2 GA", "type": "deliverable",
      "estimate": {"fidelity": "tshirt", "size": "L"},
-     "priority": 2, "owner_ids": ["claudia"]}
+     "priority": 2, "owner_ids": ["priya"]}
   ]
 }
 ```
@@ -653,18 +653,18 @@ def test_get_org_returns_seeded(client):
     resp = client.get("/org")
     assert resp.status_code == 200
     body = resp.json()
-    assert {t["id"] for t in body["teams"]} == {"msg", "email"}
+    assert {t["id"] for t in body["teams"]} == {"checkout", "notifications"}
 
 
 def test_post_valid_org_replaces(client):
     new_org = {
-        "teams": [{"id": "solo", "name": "Solo", "productive_weeks": 10,
+        "teams": [{"id": "alpha", "name": "Alpha", "productive_weeks": 10,
                    "reservations": [], "ideal_reservations": []}],
         "engineers": [], "deliverables": [], "groups": [],
     }
     resp = client.post("/org", json=new_org)
     assert resp.status_code == 200
-    assert {t["id"] for t in client.get("/org").json()["teams"]} == {"solo"}
+    assert {t["id"] for t in client.get("/org").json()["teams"]} == {"alpha"}
 
 
 def test_post_invalid_org_returns_400(client):
@@ -855,12 +855,12 @@ git commit -m "feat(server): org state + GET/POST /org with validation"
 
 File: `server/tests/test_team_plan.py`
 ```python
-def test_team_plan_msg(client):
-    resp = client.get("/teams/msg/plan")
+def test_team_plan_checkout(client):
+    resp = client.get("/teams/checkout/plan")
     assert resp.status_code == 200
     body = resp.json()
-    assert body["team_id"] == "msg"
-    # roster msg: Dia 1.0, Claudia 1.0, Albert 0.5 = 2.5 effective (L3/L2, none)
+    assert body["team_id"] == "checkout"
+    # roster checkout: Maya 1.0, Priya 1.0, Tom 0.5 = 2.5 effective (L3/L2, none)
     # gross = 2.5 * 0.71 * 12 / 4 = 5.325 ; net = gross * (1 - 0.7)
     assert body["gross_pm"] == __import__("pytest").approx(5.325, abs=1e-3)
     assert body["net_pm"] == __import__("pytest").approx(5.325 * 0.30, abs=1e-3)
@@ -923,11 +923,11 @@ The endpoint accepts a list of typed changes, applies them via `apply_scenario` 
 File: `server/tests/test_scenario.py`
 ```python
 def test_scenario_drop_ktlo_increases_net(client):
-    base = client.get("/teams/msg/plan").json()
+    base = client.get("/teams/checkout/plan").json()
     payload = {"changes": [
-        {"op": "set_reservation", "team_id": "msg", "name": "KTLO", "fraction": 0.4}
+        {"op": "set_reservation", "team_id": "checkout", "name": "KTLO", "fraction": 0.4}
     ]}
-    resp = client.post("/teams/msg/scenario", json=payload)
+    resp = client.post("/teams/checkout/scenario", json=payload)
     assert resp.status_code == 200
     body = resp.json()
     # lowering KTLO from 0.7 to 0.4 raises net PM
@@ -938,14 +938,14 @@ def test_scenario_drop_ktlo_increases_net(client):
 
 
 def test_scenario_remove_engineer(client):
-    payload = {"changes": [{"op": "remove_engineer", "engineer_id": "albert"}]}
-    resp = client.post("/teams/msg/scenario", json=payload)
+    payload = {"changes": [{"op": "remove_engineer", "engineer_id": "tom"}]}
+    resp = client.post("/teams/checkout/scenario", json=payload)
     assert resp.status_code == 200
-    assert resp.json()["plan"]["gross_pm"] < client.get("/teams/msg/plan").json()["gross_pm"]
+    assert resp.json()["plan"]["gross_pm"] < client.get("/teams/checkout/plan").json()["gross_pm"]
 
 
 def test_scenario_unknown_op_400(client):
-    resp = client.post("/teams/msg/scenario",
+    resp = client.post("/teams/checkout/scenario",
                        json={"changes": [{"op": "teleport"}]})
     assert resp.status_code == 400
 ```
@@ -1059,17 +1059,17 @@ def test_rollup_exp_group_sums_both_teams(client):
     assert resp.status_code == 200
     body = resp.json()
     assert body["group_id"] == "exp"
-    assert {tp["team_id"] for tp in body["team_plans"]} == {"msg", "email"}
-    msg = client.get("/teams/msg/plan").json()
-    email = client.get("/teams/email/plan").json()
-    assert body["total_net_pm"] == pytest.approx(msg["net_pm"] + email["net_pm"], abs=1e-6)
+    assert {tp["team_id"] for tp in body["team_plans"]} == {"checkout", "notifications"}
+    checkout = client.get("/teams/checkout/plan").json()
+    notifications = client.get("/teams/notifications/plan").json()
+    assert body["total_net_pm"] == pytest.approx(checkout["net_pm"] + notifications["net_pm"], abs=1e-6)
 
 
 def test_rollup_parent_group_includes_descendants(client):
-    # "eng" is the parent of "exp"; its rollup should include msg + email too
+    # "eng" is the parent of "exp"; its rollup should include checkout + notifications too
     resp = client.get("/groups/eng/rollup")
     assert resp.status_code == 200
-    assert {tp["team_id"] for tp in resp.json()["team_plans"]} == {"msg", "email"}
+    assert {tp["team_id"] for tp in resp.json()["team_plans"]} == {"checkout", "notifications"}
 
 
 def test_rollup_unknown_group_404(client):

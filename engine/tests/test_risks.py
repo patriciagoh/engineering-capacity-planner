@@ -35,16 +35,16 @@ def test_no_oversubscription_when_headroom():
 
 def test_spof_risk_when_single_owner_no_backup():
     team = Team(id="t", name="T", productive_weeks=12)
-    eng = Engineer(id="leah", name="Leah", level=Level.L3,
+    eng = Engineer(id="sara", name="Sara", level=Level.L3,
                    assignments=[TeamAssignment("t", 1.0)])
     deliv = Deliverable(
-        id="ard", title="Auto Reply Detection", type=DeliverableType.DELIVERABLE,
+        id="ard", title="Smart Replies", type=DeliverableType.DELIVERABLE,
         estimate=Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=1.8),
-        owner_ids=["leah"],
+        owner_ids=["sara"],
     )
     org = Org(teams=[team], engineers=[eng], deliverables=[deliv])
     fit = compute_fit(net_pm=10.0, demand=DemandRange(1.8, 1.8, 1.8))
     risks = detect_risks(org, team_id="t", fit=fit)
     spof = [r for r in risks if r.kind == "single_point_of_failure"]
     assert len(spof) == 1
-    assert "Leah" in spof[0].detail
+    assert "Sara" in spof[0].detail

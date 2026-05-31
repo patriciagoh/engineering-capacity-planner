@@ -8,7 +8,7 @@ from capacity_engine.store import org_to_dict, org_from_dict
 
 def test_engineer_constructs_with_assignments():
     eng = Engineer(
-        id="dia", name="Dia", level=Level.L3,
+        id="maya", name="Maya", level=Level.L3,
         assignments=[TeamAssignment(team_id="msgexp", availability=1.0)],
         onboarding_state=OnboardingState.NONE,
     )
@@ -18,7 +18,7 @@ def test_engineer_constructs_with_assignments():
 
 def test_deliverable_with_tshirt_estimate():
     d = Deliverable(
-        id="suncoc", title="SunCo CPaaS", type=DeliverableType.DELIVERABLE,
+        id="suncoc", title="Checkout Redesign", type=DeliverableType.DELIVERABLE,
         estimate=Estimate(fidelity=Fidelity.TSHIRT, size="L"),
         priority=1,
     )
@@ -33,19 +33,19 @@ def test_overhead_category_level_enforced_as_enum():
 
 def test_org_round_trips_through_dict():
     eng = Engineer(
-        id="dia", name="Dia", level=Level.L3,
+        id="maya", name="Maya", level=Level.L3,
         assignments=[TeamAssignment(team_id="msgexp", availability=1.0)],
         onboarding_state=OnboardingState.NEW_HIRE_M2,
     )
     team = Team(
-        id="msgexp", name="Messaging Experience", productive_weeks=12,
+        id="msgexp", name="Checkout", productive_weeks=12,
         reservations=[OverheadCategory(name="KTLO", level="team", fraction=0.7)],
         ideal_reservations=[OverheadCategory(name="KTLO", level="team", fraction=0.4)],
     )
     deliv = Deliverable(
-        id="suncoc", title="SunCo CPaaS", type=DeliverableType.DELIVERABLE,
+        id="suncoc", title="Checkout Redesign", type=DeliverableType.DELIVERABLE,
         estimate=Estimate(fidelity=Fidelity.PERSON_MONTHS, expected=2.5),
-        owner_ids=["dia"], jira_epic="MSG-123",
+        owner_ids=["maya"], jira_epic="MSG-123",
     )
     org = Org(
         teams=[team], engineers=[eng], deliverables=[deliv],
@@ -71,7 +71,7 @@ def test_org_round_trips_through_dict():
 def test_org_round_trips_groups_and_group_id():
     from capacity_engine.models import Group
     org = Org(
-        teams=[Team(id="msg", name="Messaging Experience", productive_weeks=12,
+        teams=[Team(id="msg", name="Checkout", productive_weeks=12,
                     group_id="exp")],
         engineers=[],
         groups=[

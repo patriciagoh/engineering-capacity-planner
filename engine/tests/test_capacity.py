@@ -32,7 +32,7 @@ def test_default_baseline_factor_value():
 
 
 def test_gross_person_months_neutral_matches_sheet_formula():
-    # Extensibility roster: [1,1,1,1,0.5] over 12 productive weeks -> 13.5 PM
+    # Platform roster: [1,1,1,1,0.5] over 12 productive weeks -> 13.5 PM
     team = Team(id="t", name="Ext", productive_weeks=12)
     roster = [
         _eng("a", Level.L3, 1.0), _eng("b", Level.L3, 1.0),
