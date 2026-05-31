@@ -23,15 +23,33 @@ export function ManagerView() {
 
   useEffect(() => {
     if (!teamId) return;
+    // Reset transient state so a stale error can't lock the page and the old
+    // team's plan/roster don't flash during the switch.
+    setError(null);
+    setPlan(null);
+    setRoster(null);
+    let cancelled = false;
     Promise.all([getTeamPlan(teamId), getTeamRoster(teamId)])
-      .then(([p, r]) => { setPlan(p); setRoster(r); })
-      .catch((e) => setError(String(e)));
+      .then(([p, r]) => { if (!cancelled) { setPlan(p); setRoster(r); } })
+      .catch((e) => { if (!cancelled) setError(String(e)); });
+    return () => { cancelled = true; };
   }, [teamId]);
 
   if (error) return <div className="fit-risk">{error}</div>;
   if (!org || !teamId || !plan || !roster) return <div>Loading…</div>;
 
-  const ownedDeliverables = org.deliverables; // server already scopes via owners on the team in /plan
+  // Scope deliverables to the selected team the same way the engine does
+  // (deliverables_for): a deliverable belongs to the team if any owner is an
+  // engineer assigned to it. /plan scopes demand server-side, but the displayed
+  // list is built client-side from the org.
+  const teamEngineerIds = new Set(
+    org.engineers
+      .filter((e) => e.assignments.some((a) => a.team_id === teamId && a.availability > 0))
+      .map((e) => e.id),
+  );
+  const ownedDeliverables = org.deliverables.filter((d) =>
+    d.owner_ids.some((oid) => teamEngineerIds.has(oid)),
+  );
   return (
     <div>
       <label>

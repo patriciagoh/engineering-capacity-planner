@@ -6,10 +6,22 @@ import * as api from "../api/client";
 vi.mock("../api/client");
 
 const org = {
-  teams: [{ id: "msg", name: "Messaging Experience", productive_weeks: 12, group_id: "exp" }],
-  engineers: [], deliverables: [
+  teams: [
+    { id: "msg", name: "Messaging Experience", productive_weeks: 12, group_id: "exp" },
+    { id: "email", name: "Email", productive_weeks: 12, group_id: "exp" },
+  ],
+  engineers: [
+    { id: "dia", name: "Dia", level: "L3", onboarding_state: "none",
+      assignments: [{ team_id: "msg", availability: 1 }] },
+    { id: "leah", name: "Leah", level: "L3", onboarding_state: "none",
+      assignments: [{ team_id: "email", availability: 1 }] },
+  ],
+  deliverables: [
     { id: "sunco", title: "SunCo CPaaS", type: "deliverable", priority: 1, owner_ids: ["dia"],
-      estimate: { fidelity: "person_months", expected: 2.5 } }],
+      estimate: { fidelity: "person_months", expected: 2.5 } },
+    { id: "ingress", title: "ZD Ingress", type: "deliverable", priority: 1, owner_ids: ["leah"],
+      estimate: { fidelity: "person_months", expected: 1.5 } },
+  ],
   groups: [],
 };
 const plan = {
@@ -36,4 +48,11 @@ test("loads and renders the team plan, roster, deliverables, and risks", async (
   await waitFor(() => expect(screen.getByText(/1\.6 PM net/)).toBeInTheDocument());
   expect(screen.getByText("SunCo CPaaS")).toBeInTheDocument();
   expect(screen.getByText(/Over by 1.4 PM/)).toBeInTheDocument();
+});
+
+test("scopes the deliverables list to the selected team", async () => {
+  render(<ManagerView />);
+  // msg is the default team; only msg-owned deliverables should show
+  expect(await screen.findByText("SunCo CPaaS")).toBeInTheDocument();
+  expect(screen.queryByText("ZD Ingress")).not.toBeInTheDocument(); // Email's, not Messaging's
 });
