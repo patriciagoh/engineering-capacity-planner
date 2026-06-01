@@ -7,11 +7,13 @@ type Persona = "manager" | "director";
 export default function App() {
   const [persona, setPersona] = useState<Persona>("manager");
   return (
-    <div>
-      <header style={{ marginBottom: "1rem" }}>
-        <h1 style={{ display: "inline-block", marginRight: "1rem" }}>Capacity Planning</h1>
-        <button onClick={() => setPersona("manager")} disabled={persona === "manager"}>Manager</button>{" "}
-        <button onClick={() => setPersona("director")} disabled={persona === "director"}>Director</button>
+    <div className="app">
+      <header className="topbar">
+        <h1>Capacity Planning</h1>
+        <div className="segmented" role="group" aria-label="View">
+          <button aria-pressed={persona === "manager"} onClick={() => setPersona("manager")}>Manager</button>
+          <button aria-pressed={persona === "director"} onClick={() => setPersona("director")}>Director</button>
+        </div>
       </header>
       {persona === "manager" ? <ManagerView /> : <DirectorView />}
     </div>
