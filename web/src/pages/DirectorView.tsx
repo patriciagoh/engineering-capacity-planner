@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getGroupRollup, getOrg } from "../api/client";
+import { getGroupRollup, getOrg } from "../api";
 import type { GroupRollup, Org } from "../api/types";
 
 export function DirectorView() {

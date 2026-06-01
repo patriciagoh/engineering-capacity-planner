@@ -1,9 +1,9 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import { vi, test, expect, beforeEach } from "vitest";
 import { ManagerView } from "./ManagerView";
-import * as api from "../api/client";
+import * as api from "../api";
 
-vi.mock("../api/client");
+vi.mock("../api");
 
 const org = {
   teams: [

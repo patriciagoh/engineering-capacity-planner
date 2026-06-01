@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getOrg, getTeamPlan, getTeamRoster, postScenario } from "../api/client";
+import { getOrg, getTeamPlan, getTeamRoster, postScenario } from "../api";
 import type { Org, TeamPlan, TeamRoster } from "../api/types";
 import { FitBar } from "../components/FitBar";
 import { RosterTable } from "../components/RosterTable";
