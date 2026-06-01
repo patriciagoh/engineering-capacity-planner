@@ -6,9 +6,18 @@ declare global {
 }
 
 const BASE = import.meta.env.BASE_URL ?? "/";
-const WHEEL = `${BASE}capacity_engine-0.1.0-py3-none-any.whl`;
+// Absolute URLs (resolved against the current page) so assets load correctly
+// even under a GitHub Pages project subpath.
+const asset = (name: string) => new URL(`${BASE}${name}`, location.href).href;
+const WHEEL = "capacity_engine-0.1.0-py3-none-any.whl";
 
 let bootPromise: Promise<any> | null = null;
+
+async function fetchText(name: string): Promise<string> {
+  const res = await fetch(asset(name));
+  if (!res.ok) throw new Error(`failed to load ${name}: HTTP ${res.status}`);
+  return res.text();
+}
 
 function boot(): Promise<any> {
   if (bootPromise) return bootPromise;
@@ -16,13 +25,16 @@ function boot(): Promise<any> {
     const pyodide = await loadPyodide();
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    await micropip.install(new URL(WHEEL, location.href).href);
-    const presenterSrc = await (await fetch(`${BASE}presenter.py`)).text();
-    await pyodide.runPythonAsync(presenterSrc);
-    const orgJson = await (await fetch(`${BASE}sample_org.json`)).text();
-    pyodide.globals.get("load_org")(orgJson);
+    await micropip.install(asset(WHEEL));
+    await pyodide.runPythonAsync(await fetchText("presenter.py"));
+    pyodide.globals.get("load_org")(await fetchText("sample_org.json"));
     return pyodide;
-  })();
+  })().catch((err) => {
+    // Don't leave a permanently-rejected promise — let a later call (e.g. after
+    // a transient CDN/network failure) retry the boot from scratch.
+    bootPromise = null;
+    throw err;
+  });
   return bootPromise;
 }
 
