@@ -22,7 +22,14 @@ function fakePyodide() {
 beforeEach(() => {
   for (const k of Object.keys(calls)) delete calls[k];
   (globalThis as any).loadPyodide = vi.fn().mockResolvedValue(fakePyodide());
-  (globalThis as any).fetch = vi.fn().mockResolvedValue({ ok: true, text: async () => "PYCODE_OR_JSON" } as Response);
+  (globalThis as any).fetch = vi.fn().mockImplementation((url: string) =>
+    Promise.resolve({
+      ok: true,
+      text: async () =>
+        String(url).includes("engine-manifest")
+          ? JSON.stringify({ wheel: "capacity_engine-0.1.0-py3-none-any.whl" })
+          : "PYCODE_OR_JSON",
+    } as Response));
 });
 afterEach(() => { vi.restoreAllMocks(); vi.resetModules(); });
 

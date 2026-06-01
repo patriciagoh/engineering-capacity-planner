@@ -26,6 +26,10 @@ jobs:
       - name: Build engine assets (wheel + sample org)
         run: ./web/scripts/prepare-engine-assets.sh
       - name: Build web bundle
+        # VITE_BASE = the Pages project subpath (e.g. "/engineering-capacity-planner/")
+        # so JS/CSS + the wheel/presenter/sample assets resolve under the repo path.
+        env:
+          VITE_BASE: "/${{ github.event.repository.name }}/"
         run: cd web && npm ci && npm run build
       - name: Encrypt entry page with staticrypt
         env:

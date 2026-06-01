@@ -9,7 +9,6 @@ const BASE = import.meta.env.BASE_URL ?? "/";
 // Absolute URLs (resolved against the current page) so assets load correctly
 // even under a GitHub Pages project subpath.
 const asset = (name: string) => new URL(`${BASE}${name}`, location.href).href;
-const WHEEL = "capacity_engine-0.1.0-py3-none-any.whl";
 
 let bootPromise: Promise<any> | null = null;
 
@@ -25,7 +24,8 @@ function boot(): Promise<any> {
     const pyodide = await loadPyodide();
     await pyodide.loadPackage("micropip");
     const micropip = pyodide.pyimport("micropip");
-    await micropip.install(asset(WHEEL));
+    const manifest = JSON.parse(await fetchText("engine-manifest.json")) as { wheel: string };
+    await micropip.install(asset(manifest.wheel));
     await pyodide.runPythonAsync(await fetchText("presenter.py"));
     pyodide.globals.get("load_org")(await fetchText("sample_org.json"));
     return pyodide;

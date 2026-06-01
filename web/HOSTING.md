@@ -15,6 +15,10 @@ web app** workflow manually. It builds the engine wheel, builds the web bundle,
 encrypts the entry page, and publishes to Pages. The published URL appears in the
 workflow's deploy step.
 
+The workflow builds with `VITE_BASE=/<repo-name>/` so all assets resolve under the
+Pages project subpath automatically — no manual base config needed. (A user/org
+page or custom domain at the root works too; just build without `VITE_BASE`.)
+
 ## What viewers experience
 Open the URL → enter the shared password → the app loads. First load takes a few
 seconds while the Python-in-WASM engine boots ("Warming up the engine…").

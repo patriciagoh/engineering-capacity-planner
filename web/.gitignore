@@ -6,3 +6,5 @@ vite.config.js
 vite.config.d.ts
 public/capacity_engine-*.whl
 public/sample_org.json
+public/engine-manifest.json
+public/__pycache__/
