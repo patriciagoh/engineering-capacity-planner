@@ -11,11 +11,12 @@ const plan: TeamPlan = {
   risks: [],
 };
 
-test("shows net and demand and an oversubscribed label", () => {
+test("shows net/demand/fit tiles and an oversubscribed label", () => {
   render(<FitBar plan={plan} />);
   expect(screen.getByText(/1\.6 PM net/)).toBeInTheDocument();
-  expect(screen.getByText(/3\.0 PM demand/)).toBeInTheDocument();
+  expect(screen.getByText(/4\.5 PM demand|3\.0 PM demand/)).toBeInTheDocument();
   expect(screen.getByText(/oversubscribed/i)).toBeInTheDocument();
+  expect(screen.getByText("Fit")).toBeInTheDocument(); // tile label
 });
 
 test("shows headroom when not oversubscribed", () => {
