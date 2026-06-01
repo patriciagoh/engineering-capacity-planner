@@ -5,6 +5,7 @@ import json
 
 from capacity_engine import (
     org_from_dict, org_to_dict, plan_team, rollup_group, apply_scenario,
+    validate_org, effective_capacity, DEFAULT_BASELINE_FACTOR,
     SetAvailability, SetReservation, RemoveEngineer, AddEngineer,
     Engineer, Level, OnboardingState, TeamAssignment,
 )
@@ -14,11 +15,19 @@ _ORG = None
 
 def load_org(org_json: str) -> None:
     global _ORG
-    _ORG = org_from_dict(json.loads(org_json))
+    org = org_from_dict(json.loads(org_json))
+    validate_org(org)  # parity with the server's POST /org
+    _ORG = org
+
+
+def _org():
+    if _ORG is None:
+        raise RuntimeError("no org loaded; call load_org() first")
+    return _ORG
 
 
 def get_org() -> str:
-    return json.dumps(org_to_dict(_ORG))
+    return json.dumps(org_to_dict(_org()))
 
 
 def _demand(d):
@@ -47,23 +56,23 @@ def _team_plan(p):
 
 
 def get_team_plan(team_id: str) -> str:
-    return json.dumps(_team_plan(plan_team(_ORG, team_id)))
+    return json.dumps(_team_plan(plan_team(_org(), team_id)))
 
 
 def get_team_roster(team_id: str) -> str:
-    from capacity_engine import effective_capacity, DEFAULT_BASELINE_FACTOR
-    team = _ORG.team(team_id)
+    org = _org()
+    team = org.team(team_id)
     rows = [{
         "engineer_id": e.id, "name": e.name, "level": e.level.value,
         "onboarding_state": e.onboarding_state.value,
         "availability": e.availability_on(team_id),
         "effective_capacity": effective_capacity(e, team_id, DEFAULT_BASELINE_FACTOR),
-    } for e in _ORG.engineers_on(team_id)]
+    } for e in org.engineers_on(team_id)]
     return json.dumps({"team_id": team.id, "team_name": team.name, "roster": rows})
 
 
 def get_group_rollup(group_id: str) -> str:
-    r = rollup_group(_ORG, group_id)
+    r = rollup_group(_org(), group_id)
     return json.dumps({
         "group_id": r.group_id, "group_name": r.group_name,
         "total_gross_pm": r.total_gross_pm, "total_net_pm": r.total_net_pm,
@@ -73,6 +82,8 @@ def get_group_rollup(group_id: str) -> str:
 
 
 def _change(d):
+    if not isinstance(d, dict):
+        raise ValueError(f"each change must be an object, got {type(d).__name__}")
     op = d.get("op")
     if op == "set_availability":
         return SetAvailability(d["engineer_id"], d["team_id"], float(d["availability"]))
@@ -90,9 +101,10 @@ def _change(d):
 
 
 def post_scenario(team_id: str, changes_json: str) -> str:
-    baseline = plan_team(_ORG, team_id)
+    org = _org()
+    baseline = plan_team(org, team_id)
     changes = [_change(c) for c in json.loads(changes_json)]
-    scen = plan_team(apply_scenario(_ORG, changes), team_id)
+    scen = plan_team(apply_scenario(org, changes), team_id)
     return json.dumps({
         "plan": _team_plan(scen), "baseline": _team_plan(baseline),
         "delta": {

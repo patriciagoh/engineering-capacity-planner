@@ -37,9 +37,29 @@ def test_post_scenario_returns_delta():
 
 
 def test_matches_server_serializer():
-    # presenter dicts must equal capacity_server.serialize output for the same org
+    # presenter dicts must equal capacity_server.serialize output for the same org —
+    # covers team_plan, roster, AND rollup so none can silently drift.
     from capacity_engine.store import load_org
-    from capacity_engine.planning import plan_team
-    from capacity_server.serialize import team_plan_to_dict
+    from capacity_engine.planning import plan_team, rollup_group
+    from capacity_server.serialize import (
+        team_plan_to_dict, roster_to_dict, rollup_to_dict,
+    )
     org = load_org(SAMPLE)
     assert json.loads(presenter.get_team_plan("msg")) == team_plan_to_dict(plan_team(org, "msg"))
+    assert json.loads(presenter.get_team_roster("msg")) == roster_to_dict(org, "msg")
+    assert json.loads(presenter.get_group_rollup("eng")) == rollup_to_dict(rollup_group(org, "eng"))
+
+
+def test_change_non_object_raises():
+    import pytest
+    with pytest.raises(ValueError, match="must be an object"):
+        presenter.post_scenario("msg", json.dumps(["not-an-object"]))
+
+
+def test_functions_require_loaded_org():
+    # a fresh import with no org loaded raises a clear error, not AttributeError
+    import importlib, pytest
+    fresh = importlib.reload(presenter)
+    with pytest.raises(RuntimeError, match="no org loaded"):
+        fresh.get_team_plan("msg")
+    presenter.load_org(SAMPLE.read_text())  # restore for any later tests
