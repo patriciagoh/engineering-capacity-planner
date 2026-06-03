@@ -13,4 +13,14 @@
   --over-fill: var(--bad);
   --good-fill: var(--matcha);
   --reserved-fill: var(--yolk);
+
+  /* Hero (dark panel) text roles — derived from the on-dark term token */
+  --hero-unit: color-mix(in srgb, var(--term-text) 70%, transparent); /* subdued unit label */
+  --hero-verdict: var(--term-text); /* serif verdict text on dark bg */
+
+  /* Addrow hover — the deepened matcha-tint edge token */
+  --addrow-hover: var(--matcha-tint-border);
+
+  /* Yolk callout border — softened yolk over paper */
+  --yolk-border: color-mix(in srgb, var(--yolk) 55%, var(--paper));
 }
