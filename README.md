@@ -1,5 +1,7 @@
 # Engineering Capacity Planner
 
+**Live:** https://patriciagoh.github.io/engineering-capacity-planner/
+
 A capacity-planning tool for engineering managers — plan a quarter against real
 team capacity, run what-if scenarios, and communicate tradeoffs to stakeholders.
 
@@ -11,6 +13,27 @@ trustworthy, not guessed.
 
 > The sample org in this repo is fictional — generic team and person names for
 > illustration only.
+
+---
+
+## The model
+
+For a team over a window (`weeks = 4.33` monthly, `12` quarterly):
+
+```
+effFTE      = Σ roster ( alloc × level multiplier × onboarding multiplier )
+productive  = max(0, 1 − overhead%)        // share of the week that reaches real work
+grossPM     = effFTE × (weeks / 4) × productive
+netPM       = grossPM × (1 − KTLO%)        // free for projects  ← the headline
+demand      = Σ project estimates (person-months)
+fit         = netPM − demand               // + spare, − oversubscribed
+```
+
+Level and onboarding multipliers discount a ramping hire or a leadership-heavy
+senior; overhead (meetings, PTO, reviews…) and KTLO ("keep the lights on":
+support, incidents, interviews) are reserved before any project work. Every
+displayed number traces back to inputs through these formulas — nothing is
+hard-coded. The seeded Aurora team works out to **2.7 net person-months**.
 
 ---
 
@@ -83,9 +106,30 @@ repo path.
 
 ---
 
+## Deploy
+
+Pushing to `main` runs CI (`.github/workflows/ci.yml`: typecheck → token
+guardrail → tests → build) and, on success, deploys `web/dist` to GitHub Pages
+(`.github/workflows/deploy.yml`). Pages is configured to build from GitHub
+Actions.
+
+> **Lockfile caveat.** A `package-lock.json` regenerated on macOS can omit the
+> Linux `@rollup/rollup-*` optional packages, which makes `npm ci` fail on the
+> Pages runner (`Cannot find module @rollup/rollup-linux-x64-gnu`, npm/cli#4828).
+> If you regenerate the lock, do a clean `rm -rf node_modules package-lock.json
+> && npm install` and confirm `node_modules/@rollup/rollup-linux-x64-gnu` is a
+> real entry in the lock (≈25 `@rollup/rollup-*` platform entries) before pushing.
+
+---
+
 ## Tech stack
 
-- React 19, TypeScript, Vite, Tailwind CSS 3 (matcha-oat preset)
+- React 19, TypeScript, Vite, Tailwind CSS 3
+- [matcha-oat-design-system](https://github.com/patriciagoh/matcha-oat-design-system)
+  — the design tokens, consumed via its Tailwind preset; real color/font values
+  live only there. App-specific aliases sit in `web/src/styles/tokens.planner.css`;
+  a `lint:tokens` guardrail fails the build on any raw hex or font literal in
+  `components/`/`screens/`.
 - Lucide icons
 - Vitest + @testing-library + vitest-axe
 - Node 20
