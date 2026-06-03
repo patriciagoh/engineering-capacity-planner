@@ -27,3 +27,25 @@ export const fit = (t: Team): number => netPM(t) - demand(t);
 
 export const headcount = (roster: Engineer[]): number =>
   roster.reduce((s, e) => s + e.alloc, 0);
+
+export interface PersonLoad {
+  name: string;
+  assignedPM: number;
+  personNet: number;
+  pct: number;
+  over: boolean;
+}
+
+export const personNet = (e: Engineer, t: Team): number =>
+  engEff(e) * (weeksFor(t.window) / 4) * productive(t.overhead) * (1 - ktloFrac(t.ktlo));
+
+export const personLoads = (t: Team): PersonLoad[] =>
+  t.roster.map((e, i) => {
+    const assignedPM = t.projects.reduce(
+      (s, p) => s + (p.team.includes(i) ? p.est / p.team.length : 0),
+      0,
+    );
+    const pNet = personNet(e, t);
+    const pct = pNet > 0 ? (assignedPM / pNet) * 100 : 0;
+    return { name: e.name, assignedPM, personNet: pNet, pct, over: pct > 100 };
+  });
