@@ -1,0 +1,58 @@
+import { describe, it, expect } from "vitest";
+import { defaultOverhead, defaultKtlo } from "./constants";
+import {
+  weeksFor, effFTE, productive, grossPM, ktloFrac, netPM, demand, fit,
+} from "./selectors";
+import type { Team } from "./types";
+
+const aurora: Team = {
+  name: "Aurora",
+  window: "quarter",
+  overhead: defaultOverhead(),
+  ktlo: defaultKtlo(),
+  roster: [
+    { name: "Alex Rivera", tenure: "> 4 years", level: "L3", onboarding: "Mentor: Month 1", alloc: 1 },
+    { name: "Sam Chen", tenure: "1–2 years", level: "L3", onboarding: "Mentor: Month 1", alloc: 1 },
+    { name: "Jordan Lee", tenure: "> 4 years", level: "L3", onboarding: "Not Applicable", alloc: 1 },
+    { name: "Priya Nair", tenure: "< 4 months", level: "L2", onboarding: "New Hire: Month 3", alloc: 1 },
+    { name: "Diego Torres", tenure: "< 4 months", level: "Intern", onboarding: "New Hire: Month 1", alloc: 0.5 },
+  ],
+  projects: [
+    { name: "Search revamp", est: 1.2, team: [0, 1] },
+    { name: "Billing migration", est: 0.8, team: [2] },
+    { name: "Onboarding tooling", est: 0.3, team: [3] },
+  ],
+};
+
+describe("core selectors (Aurora fixture)", () => {
+  it("weeksFor: 12 for quarter, 4.33 for month", () => {
+    expect(weeksFor("quarter")).toBe(12);
+    expect(weeksFor("month")).toBe(4.33);
+  });
+  it("effFTE sums alloc x level x onboarding", () => {
+    expect(effFTE(aurora.roster)).toBeCloseTo(3.5375, 4);
+  });
+  it("productive is 1 - overhead fraction, floored at 0", () => {
+    expect(productive(aurora.overhead)).toBeCloseTo(0.51, 5);
+  });
+  it("grossPM = effFTE x (weeks/4) x productive", () => {
+    expect(grossPM(aurora)).toBeCloseTo(5.41238, 4);
+  });
+  it("ktloFrac sums reservations", () => {
+    expect(ktloFrac(aurora.ktlo)).toBeCloseTo(0.5, 5);
+  });
+  it("netPM is the headline (~2.706)", () => {
+    expect(netPM(aurora)).toBeCloseTo(2.706, 2);
+  });
+  it("demand sums project estimates", () => {
+    expect(demand(aurora)).toBeCloseTo(2.3, 5);
+  });
+  it("fit = netPM - demand (~0.406 spare)", () => {
+    expect(fit(aurora)).toBeCloseTo(0.406, 2);
+  });
+  it("productive floors at 0 when overhead exceeds 100", () => {
+    const t = { ...aurora, overhead: aurora.overhead.map((f) => ({ ...f, current: 20 })) };
+    expect(productive(t.overhead)).toBe(0);
+    expect(grossPM(t)).toBe(0);
+  });
+});
