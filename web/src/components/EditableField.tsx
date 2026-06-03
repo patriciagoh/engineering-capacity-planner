@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 
 export function EditableField({
   value, onCommit, ariaLabel, numeric = false, className = "",
@@ -11,7 +11,13 @@ export function EditableField({
 }) {
   const [draft, setDraft] = useState(value);
   const ref = useRef<HTMLInputElement>(null);
-  useEffect(() => setDraft(value), [value]);
+  // Re-sync the draft when the committed value changes externally (the
+  // documented "adjust state while rendering" pattern — no effect needed).
+  const [lastValue, setLastValue] = useState(value);
+  if (value !== lastValue) {
+    setLastValue(value);
+    setDraft(value);
+  }
 
   const commit = () => { if (draft !== value) onCommit(draft); };
 

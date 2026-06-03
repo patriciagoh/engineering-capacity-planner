@@ -92,7 +92,7 @@ export function Director() {
               aria-label={`${tf.name}${isOpen ? " open" : ""}`}
               aria-pressed={isSel}
               onClick={() => setSelectedTile(isSel ? null : i)}
-              className={`text-left bg-paper border rounded-xl p-4 shadow-[0_1px_2px_rgba(120,100,70,0.04)] transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-matcha ${
+              className={`text-left bg-paper border rounded-xl p-4 shadow-[var(--shadow-hairline)] transition-all hover:-translate-y-0.5 hover:shadow-md focus-visible:outline-2 focus-visible:outline-matcha ${
                 over ? "border-[color:var(--bad-border)]" : "border-line"
               } ${isSel ? "outline-2 outline outline-matcha outline-offset-1" : ""}`}
             >
@@ -141,7 +141,7 @@ export function Director() {
         const over = tf.fit < 0;
         const isOpen = selectedTile === state.cur;
         return (
-          <div className="mt-4 bg-paper border border-line rounded-xl p-5 shadow-[0_1px_2px_rgba(120,100,70,0.04)]">
+          <div className="mt-4 bg-paper border border-line rounded-xl p-5 shadow-[var(--shadow-hairline)]">
             <div className="flex justify-between items-baseline">
               <span className="text-[15px] font-bold">
                 {team.name}{isOpen ? " · open" : ""}

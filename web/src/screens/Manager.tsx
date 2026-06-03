@@ -64,7 +64,7 @@ export function Manager() {
       <div className="pr-6 pb-20 flex flex-col gap-5 min-w-0">
 
         {/* Card 1: Team roster */}
-        <section className="bg-paper border border-line rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(120,100,70,0.04)]">
+        <section className="bg-paper border border-line rounded-xl overflow-hidden shadow-[var(--shadow-hairline)]">
           <header className="px-5 py-4 border-b border-line">
             <div className="flex items-center gap-3">
               <span className="font-mono text-[9.5px] font-bold tracking-[.14em] uppercase text-matcha-deep">1 · Supply</span>
@@ -174,7 +174,7 @@ export function Manager() {
         </section>
 
         {/* Card 2: Where the week goes */}
-        <section className="bg-paper border border-line rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(120,100,70,0.04)]">
+        <section className="bg-paper border border-line rounded-xl overflow-hidden shadow-[var(--shadow-hairline)]">
           <header className="px-5 py-4 border-b border-line">
             <div className="flex items-center gap-3">
               <span className="font-mono text-[9.5px] font-bold tracking-[.14em] uppercase text-matcha-deep">2 · Per-engineer baseline</span>
@@ -221,7 +221,7 @@ export function Manager() {
         </section>
 
         {/* Card 3: KTLO & recurring work */}
-        <section className="bg-paper border border-line rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(120,100,70,0.04)]">
+        <section className="bg-paper border border-line rounded-xl overflow-hidden shadow-[var(--shadow-hairline)]">
           <header className="px-5 py-4 border-b border-line">
             <div className="flex items-center gap-3">
               <span className="font-mono text-[9.5px] font-bold tracking-[.14em] uppercase text-matcha-deep">3 · Team reservations</span>
@@ -279,7 +279,7 @@ export function Manager() {
         <section
           role="region"
           aria-label="Projects this quarter"
-          className="bg-paper border border-line rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(120,100,70,0.04)]"
+          className="bg-paper border border-line rounded-xl overflow-hidden shadow-[var(--shadow-hairline)]"
         >
           <header className="px-5 py-4 border-b border-line">
             <div className="flex items-center gap-3">
@@ -356,7 +356,7 @@ export function Manager() {
         </section>
 
         {/* Card 5: Who's quietly overloaded */}
-        <section className="bg-paper border border-line rounded-xl overflow-hidden shadow-[0_1px_2px_rgba(120,100,70,0.04)]">
+        <section className="bg-paper border border-line rounded-xl overflow-hidden shadow-[var(--shadow-hairline)]">
           <header className="px-5 py-4 border-b border-line">
             <div className="flex items-center gap-3">
               <span className="font-mono text-[9.5px] font-bold tracking-[.14em] uppercase text-matcha-deep">Check · per person</span>

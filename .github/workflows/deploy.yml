@@ -1,49 +1,19 @@
-name: Deploy capacity web app
+name: Deploy
 on:
-  push:
-    branches: [main]
-    paths: ["web/**", "engine/**", ".github/workflows/deploy.yml"]
-  workflow_dispatch:
-
-permissions:
-  contents: read
-  pages: write
-  id-token: write
-
-concurrency:
-  group: pages
-  cancel-in-progress: true
-
+  push: { branches: [main] }
+permissions: { contents: read, pages: write, id-token: write }
+concurrency: { group: "pages", cancel-in-progress: true }
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults: { run: { working-directory: web } }
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - uses: actions/setup-node@v4
-        with: { node-version: "20" }
-      - name: Build engine assets (wheel + sample org)
-        run: ./web/scripts/prepare-engine-assets.sh
-      - name: Build web bundle
-        # VITE_BASE = the Pages project subpath (e.g. "/engineering-capacity-planner/")
-        # so JS/CSS + the wheel/presenter/sample assets resolve under the repo path.
-        env:
-          VITE_BASE: "/${{ github.event.repository.name }}/"
-        run: cd web && npm ci && npm run build
-      - name: Encrypt entry page with staticrypt
-        env:
-          STATICRYPT_PASSWORD: ${{ secrets.STATICRYPT_PASSWORD }}
-        run: |
-          if [ -z "$STATICRYPT_PASSWORD" ]; then
-            echo "STATICRYPT_PASSWORD secret is not set — refusing to publish unencrypted." >&2
-            exit 1
-          fi
-          npx --yes staticrypt web/dist/index.html \
-            -p "$STATICRYPT_PASSWORD" --short \
-            -d web/dist
-          # staticrypt writes the encrypted index.html into web/dist (overwrites entry)
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v6
+        with: { node-version: "20", cache: "npm", cache-dependency-path: web/package-lock.json }
+      - run: npm ci
+      - run: npm run build
+      - uses: actions/upload-pages-artifact@v5
         with: { path: web/dist }
   deploy:
     needs: build
@@ -51,4 +21,4 @@ jobs:
     environment: { name: github-pages, url: "${{ steps.deployment.outputs.page_url }}" }
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5

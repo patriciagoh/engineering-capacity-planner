@@ -1,3 +1,7 @@
+/* eslint-disable react-refresh/only-export-components --
+   This module intentionally co-locates the store: the reducer, action types,
+   the StoreProvider component, and the useStore hook live together. The rule
+   only concerns HMR fast-refresh, not correctness. */
 import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from "react";
 import type { Team, Engineer, Window } from "../engine/types";
 import { makeSeedTeams, CUR } from "../data/seed";
