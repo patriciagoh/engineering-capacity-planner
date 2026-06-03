@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Capacity · Team Aurora</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400;1,6..72,500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --oat:#FAF7EF; --paper:#FFFFFF; --sunk:#F3EFE4;
+    --ink:#23211B; --ink2:#4C483E; --t2:#56524A; --muted:#777165; --faint:#A9A294;
+    --line:#E8E2D5; --line2:#DAD3C3; --hard:#C7C0B0;
+    --matcha:#6E8B57; --matchaDeep:#4E6B3A; --matchaTint:#EDF1E5; --matchaBd:#DBE3CF;
+    --yolk:#E8B23C; --yolkDeep:#8E6416; --yolkTint:#FBEDC6; --yolkText:#6A5320;
+    --rust:#C0533A; --rustTint:#F6E4DE; --term:#26241D;
+    --mono:"Space Mono",ui-monospace,monospace; --sans:"Hanken Grotesk",system-ui,sans-serif; --serif:"Newsreader",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--oat);color:var(--ink);font-family:var(--sans);font-size:14px;-webkit-font-smoothing:antialiased;}
+
+  /* tooltips for jargon */
+  .tip{position:relative;cursor:help;border-bottom:1px dotted var(--muted);}
+  .tip .ttx{visibility:hidden;opacity:0;position:absolute;left:0;bottom:150%;z-index:90;width:236px;background:var(--term);color:#F2EEE4;font-family:var(--sans);font-size:11.5px;font-weight:500;line-height:1.5;letter-spacing:0;text-transform:none;padding:10px 12px;border-radius:9px;box-shadow:0 10px 30px rgba(40,30,15,.26);transition:opacity .15s;}
+  .tip:hover .ttx{visibility:visible;opacity:1;}
+  .info{display:inline-flex;align-items:center;justify-content:center;width:14px;height:14px;border-radius:99px;border:1px solid var(--line2);color:var(--muted);font-size:9px;font-weight:700;font-family:var(--sans);margin-left:5px;cursor:help;position:relative;vertical-align:middle;}
+  .info .ttx{visibility:hidden;opacity:0;position:absolute;left:50%;transform:translateX(-50%);bottom:150%;z-index:90;width:230px;background:var(--term);color:#F2EEE4;font-family:var(--sans);font-size:11.5px;font-weight:500;line-height:1.5;letter-spacing:0;text-transform:none;padding:10px 12px;border-radius:9px;box-shadow:0 10px 30px rgba(40,30,15,.26);transition:opacity .15s;}
+  .info:hover .ttx{visibility:visible;opacity:1;}
+
+  /* top bar */
+  .topbar{display:flex;align-items:center;gap:18px;padding:16px 28px;background:var(--oat);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+  .team{display:flex;flex-direction:column;gap:1px;}
+  .team .name{font-size:20px;font-weight:700;letter-spacing:-.01em;display:flex;align-items:center;gap:8px;}
+  .team .name .mid{width:5px;height:5px;border-radius:99px;background:var(--matcha);display:inline-block;}
+  .team .sub{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase;}
+  .seg{display:flex;background:var(--sunk);border:1px solid var(--line2);border-radius:999px;padding:3px;gap:2px;}
+  .seg button{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--t2);background:transparent;border:0;border-radius:999px;padding:6px 15px;cursor:pointer;transition:background .18s,color .18s;}
+  .seg button.on{background:var(--paper);color:var(--ink);box-shadow:0 1px 2px rgba(80,60,30,.10);}
+  .topbar .spacer{flex:1;}
+  .ghost{font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--t2);background:var(--paper);border:1px solid var(--line2);border-radius:9px;padding:8px 14px;cursor:pointer;white-space:nowrap;transition:border-color .2s,transform .2s;}
+  .ghost:hover{border-color:var(--hard);transform:translateY(-1px);}
+  .ghost.primary{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+  .ghost.primary:hover{background:var(--matchaDeep);border-color:var(--matchaDeep);}
+
+  /* reading guide */
+  .guide{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:13px 28px;background:var(--matchaTint);border-bottom:1px solid var(--matchaBd);}
+  .guide .lead{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--matchaDeep);}
+  .guide .step{display:flex;align-items:center;gap:8px;}
+  .guide .step .n{width:19px;height:19px;border-radius:99px;background:var(--paper);border:1px solid var(--matchaBd);color:var(--matchaDeep);font-family:var(--mono);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;}
+  .guide .step span{font-size:12.5px;color:var(--ink2);}
+  .guide .arr{color:var(--matcha);font-family:var(--mono);}
+
+  /* layout */
+  .wrap{display:grid;grid-template-columns:1fr 392px;align-items:start;}
+  .main{padding:26px 28px 90px;display:flex;flex-direction:column;gap:20px;min-width:0;}
+  .rail{position:sticky;top:65px;height:calc(100vh - 65px);overflow:auto;background:var(--oat);border-left:1px solid var(--line);padding:26px 26px 48px;}
+
+  /* card */
+  .card{background:var(--paper);border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 1px 2px rgba(120,100,70,.04);}
+  .card>header{padding:15px 20px 13px;border-bottom:1px solid var(--line);}
+  .card>header .top{display:flex;align-items:center;gap:11px;}
+  .card>header .eyebrow{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--matchaDeep);}
+  .card>header h3{margin:0;font-size:16px;font-weight:700;letter-spacing:-.01em;white-space:nowrap;}
+  .card>header .explain{margin:7px 0 0;font-size:12.5px;color:var(--muted);line-height:1.5;max-width:62ch;}
+  .card .body{padding:8px 20px 18px;}
+
+  /* roster */
+  table.roster{width:100%;border-collapse:collapse;}
+  table.roster th{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:left;padding:11px 8px 9px;border-bottom:1px solid var(--line2);white-space:nowrap;}
+  table.roster th.num,table.roster td.num{text-align:right;}
+  table.roster td{padding:7px 8px;border-bottom:1px solid var(--line);vertical-align:middle;}
+  table.roster tr:last-child td{border-bottom:0;}
+  .ename{font-size:13.5px;font-weight:600;}
+  select{font-family:var(--sans);font-size:12.5px;color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:6px 26px 6px 10px;cursor:pointer;
+    appearance:none;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23777165' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>");background-repeat:no-repeat;background-position:right 9px center;transition:border-color .18s;}
+  select:hover{border-color:var(--hard);}
+  select:focus{outline:none;border-color:var(--matcha);box-shadow:0 0 0 3px var(--matchaTint);}
+  .mult{font-family:var(--mono);font-size:11px;color:var(--muted);}
+  .effcap{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--matchaDeep);}
+  .rowdel{border:0;background:transparent;color:var(--hard);cursor:pointer;font-size:15px;line-height:1;padding:3px 5px;border-radius:6px;transition:color .15s,background .15s;}
+  .rowdel:hover{color:var(--rust);background:var(--rustTint);}
+  .addrow{display:flex;align-items:center;gap:7px;width:fit-content;white-space:nowrap;margin-top:11px;font-family:var(--sans);font-size:12.5px;font-weight:600;color:var(--matchaDeep);background:var(--matchaTint);border:1px dashed var(--matchaBd);border-radius:9px;padding:9px 13px;cursor:pointer;transition:background .18s;}
+  .addrow:hover{background:#E5EBD9;}
+
+  /* factor sliders */
+  .factor{display:grid;grid-template-columns:1fr 176px 104px;gap:16px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);}
+  .factor:last-child{border-bottom:0;}
+  .factor .flabel b{font-size:13px;font-weight:600;display:block;}
+  .factor .flabel span{font-size:11px;color:var(--muted);line-height:1.35;}
+  input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;background:var(--line2);outline:none;}
+  input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--paper);border:2px solid var(--matchaDeep);cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.14);}
+  input[type=range]::-moz-range-thumb{width:16px;height:16px;border-radius:50%;background:var(--paper);border:2px solid var(--matchaDeep);cursor:pointer;}
+  .fval{display:flex;align-items:baseline;justify-content:flex-end;gap:7px;}
+  .fval .cur{font-family:var(--mono);font-size:13px;font-weight:700;}
+  .fval .ideal{font-family:var(--mono);font-size:10px;color:var(--muted);}
+  .fval .ideal.over{color:var(--rust);}
+  .totrow{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding:12px 15px;background:var(--sunk);border-radius:10px;}
+  .totrow .k{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--t2);}
+  .totrow .v{font-family:var(--mono);font-size:14px;font-weight:700;}
+
+  /* results rail */
+  .rail .rlab{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);}
+  .hero{margin-top:14px;padding:22px;border-radius:16px;background:var(--term);color:#F2EEE4;}
+  .hero .lab{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yolk);}
+  .hero .big{font-family:var(--mono);font-size:52px;font-weight:700;line-height:1;margin:10px 0 2px;letter-spacing:-.02em;color:#fff;}
+  .hero .unit{font-size:13px;color:#C9C2B3;}
+  .hero .verdict{margin-top:15px;padding-top:15px;border-top:1px solid rgba(255,255,255,.12);font-family:var(--serif);font-style:italic;font-size:17px;line-height:1.4;color:#EDE8DC;}
+  .hero .verdict b{font-style:normal;font-weight:500;color:#fff;border-bottom:2px solid var(--yolk);}
+
+  .barwrap{margin-top:20px;}
+  .barwrap .cap{display:flex;justify-content:space-between;margin-bottom:7px;}
+  .barwrap .cap span{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);}
+  .bar{height:28px;border-radius:8px;overflow:hidden;display:flex;border:1px solid var(--line2);background:var(--sunk);}
+  .bar .net{background:var(--matcha);transition:width .25s;}
+  .bar .res{background:repeating-linear-gradient(45deg,var(--yolkTint),var(--yolkTint) 5px,var(--yolk) 5px,var(--yolk) 10px);transition:width .25s;}
+
+  .stat{display:flex;align-items:center;justify-content:space-between;padding:13px 0;border-bottom:1px solid var(--line);}
+  .stat:last-child{border-bottom:0;}
+  .stat .k{font-size:12.5px;color:var(--t2);display:flex;align-items:center;}
+  .stat .v{font-family:var(--mono);font-size:14px;font-weight:700;}
+  .stat .v small{font-family:var(--mono);font-size:10px;color:var(--muted);font-weight:400;}
+
+  .why{margin-top:20px;background:var(--yolkTint);border:1px solid #EAD9A4;border-radius:12px;padding:14px 16px;}
+  .why .wt{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yolkText);}
+  .why p{margin:7px 0 0;font-size:12.5px;color:var(--yolkText);line-height:1.5;}
+  .why p b{font-weight:700;}
+
+  .glossary{margin-top:22px;}
+  .glossary .gt{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:10px;}
+  .glossary dl{margin:0;display:flex;flex-direction:column;gap:10px;}
+  .glossary dt{font-size:12px;font-weight:700;color:var(--ink);}
+  .glossary dd{margin:2px 0 0;font-size:11.5px;color:var(--muted);line-height:1.45;}
+  .legend{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+  .segrow{display:flex;align-items:center;gap:9px;}
+  .segrow .dot{width:9px;height:9px;border-radius:3px;flex:0 0 auto;}
+  .segrow .nm{font-size:12px;color:var(--t2);flex:1;}
+  .segrow .pc{font-family:var(--mono);font-size:11px;font-weight:700;}
+  /* editable cells */
+  .ed{outline:none;border-radius:4px;cursor:text;}
+  .ed:hover{background:var(--matchaTint);}
+  .ed:focus{outline:2px solid var(--matcha);outline-offset:1px;background:var(--paper);}
+  .idealed{font-weight:700;color:var(--ink2);padding:0 2px;}
+  .estcell{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--matchaDeep);padding:0 3px;}
+  /* assignment chips */
+  .chips{display:flex;flex-wrap:wrap;gap:5px;}
+  .chip{font-size:10.5px;font-weight:600;color:var(--muted);background:var(--sunk);border:1px solid var(--line2);border-radius:999px;padding:3px 9px;cursor:pointer;transition:background .15s,color .15s,border-color .15s;}
+  .chip.on{color:#fff;background:var(--matcha);border-color:var(--matchaDeep);}
+  .chip:hover{border-color:var(--hard);}
+  .chip.warnchip{color:var(--rust);background:var(--rustTint);border-color:#E6C3B6;cursor:default;}
+  /* export menu */
+  .exportwrap{position:relative;}
+  .menu{position:absolute;right:0;top:calc(100% + 6px);z-index:40;background:var(--paper);border:1px solid var(--line2);border-radius:11px;box-shadow:0 12px 34px rgba(60,40,20,.16);padding:6px;min-width:188px;display:flex;flex-direction:column;}
+  .menu[hidden]{display:none;}
+  .menu button{font-family:var(--sans);font-size:13px;font-weight:600;color:var(--ink);background:transparent;border:0;border-radius:7px;padding:9px 11px;text-align:left;cursor:pointer;}
+  .menu button:hover{background:var(--matchaTint);color:var(--matchaDeep);}
+  /* projects-vs-capacity fit block */
+  .fit{margin-top:20px;padding:15px 16px;border:1px solid var(--line);border-radius:12px;background:var(--paper);}
+  .fit .ft{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);}
+  .fitbar{height:22px;border-radius:7px;overflow:hidden;display:flex;border:1px solid var(--line2);background:var(--sunk);margin:10px 0 9px;}
+  .fitbar .used{background:var(--matcha);transition:width .25s;}
+  .fitbar .over{background:repeating-linear-gradient(45deg,var(--rustTint),var(--rustTint) 5px,var(--rust) 5px,var(--rust) 10px);transition:width .25s;}
+  .fitrow{display:flex;justify-content:space-between;font-size:12px;color:var(--t2);padding:3px 0;}
+  .fitrow b{font-family:var(--mono);font-weight:700;}
+  .inwords{margin-top:18px;font-size:12.5px;color:var(--ink2);line-height:1.65;}
+  .inwords b{font-family:var(--mono);font-weight:700;color:var(--ink);}
+  @media print{.topbar .ghost,.exportwrap,.guide,.views{display:none!important}.rail{position:static;height:auto;border-left:0}.wrap{display:block}}
+  /* view switcher */
+  [hidden]{display:none!important;}
+  .views{display:flex;gap:4px;padding:9px 28px;background:var(--oat);border-bottom:1px solid var(--line);}
+  .views button{font-family:var(--sans);font-size:13.5px;font-weight:600;color:var(--muted);background:transparent;border:0;border-radius:9px;padding:8px 15px;cursor:pointer;display:flex;align-items:center;gap:8px;transition:background .15s,color .15s;}
+  .views button .vi{font-family:var(--mono);font-size:9.5px;font-weight:700;color:var(--faint);letter-spacing:.06em;}
+  .views button:hover{color:var(--ink2);background:var(--sunk);}
+  .views button.on{color:#fff;background:var(--ink);}
+  .views button.on .vi{color:var(--yolk);}
+  /* director / pm pages */
+  .vpage{padding:28px 28px 90px;max-width:1180px;}
+  .veyebrow{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--matchaDeep);}
+  .vhead h2{font-family:var(--serif);font-weight:400;font-size:30px;letter-spacing:-.02em;margin:8px 0 0;}
+  .vhead p{margin:9px 0 22px;font-size:14px;color:var(--ink2);line-height:1.55;max-width:64ch;}
+  /* overload */
+  .loadrow{display:grid;grid-template-columns:130px 1fr 56px;gap:12px;align-items:center;padding:9px 0;border-bottom:1px solid var(--line);}
+  .loadrow:last-child{border-bottom:0;}
+  .loadrow .ln{font-size:13px;font-weight:600;}
+  .loadbar{height:11px;border-radius:6px;background:var(--sunk);overflow:hidden;border:1px solid var(--line2);}
+  .loadbar i{display:block;height:100%;}
+  .loadpct{font-family:var(--mono);font-size:11px;font-weight:700;text-align:right;}
+  /* director grid */
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media(max-width:880px){.tiles{grid-template-columns:repeat(2,1fr);}}
+  .tile{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:16px;box-shadow:0 1px 2px rgba(120,100,70,.04);}
+  .tile.red{border-color:#E6C3B6;}
+  .tile .tn{display:flex;align-items:center;gap:8px;font-size:14px;font-weight:700;}
+  .tile .tbar{height:12px;border-radius:6px;background:var(--sunk);overflow:hidden;border:1px solid var(--line2);margin:12px 0 9px;display:flex;}
+  .tile .tbar .u{background:var(--matcha);}
+  .tile .tbar .o{background:repeating-linear-gradient(45deg,var(--rustTint),var(--rustTint) 4px,var(--rust) 4px,var(--rust) 8px);}
+  .tile .trow{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);}
+  .tile .tfit{font-family:var(--mono);font-weight:700;font-size:16px;margin-top:9px;}
+  /* move panel */
+  .movewrap{display:grid;grid-template-columns:1.3fr 1fr;gap:18px;margin-top:24px;}
+  @media(max-width:880px){.movewrap{grid-template-columns:1fr;}}
+  .panel{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 20px;}
+  .panel h3{margin:0 0 14px;font-size:15px;font-weight:700;}
+  .mvline{display:flex;align-items:center;gap:9px;flex-wrap:wrap;}
+  .mvline select{flex:1;min-width:104px;font-family:var(--sans);font-size:12.5px;color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:8px;padding:8px 10px;cursor:pointer;}
+  .btn{font-family:var(--sans);font-size:13px;font-weight:700;color:#fff;background:var(--matchaDeep);border:0;border-radius:9px;padding:9px 16px;cursor:pointer;}
+  .btn:hover{background:var(--matcha);}
+  .ba{display:flex;gap:12px;margin-top:16px;}
+  .ba:empty{display:none;}
+  .ba .bx{flex:1;border:1px solid var(--line2);border-radius:10px;padding:12px;}
+  .ba .bx.dest{background:var(--matchaTint);border-color:var(--matchaBd);}
+  .ba .bxn{font-size:12px;font-weight:700;}
+  .ba .bxf{font-family:var(--mono);font-size:15px;font-weight:700;margin-top:6px;color:var(--matchaDeep);}
+  /* PM */
+  .pmwrap{display:grid;grid-template-columns:340px 1fr;gap:20px;align-items:start;}
+  @media(max-width:880px){.pmwrap{grid-template-columns:1fr;}}
+  .field{margin-bottom:14px;}
+  .field label{display:block;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+  .field input,.field select{width:100%;font-family:var(--sans);font-size:14px;color:var(--ink);background:var(--paper);border:1px solid var(--line2);border-radius:9px;padding:9px 11px;}
+  .field input:focus,.field select:focus{outline:none;border-color:var(--matcha);box-shadow:0 0 0 3px var(--matchaTint);}
+  .pmcard{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:20px;}
+  .pmverdict{font-family:var(--serif);font-size:23px;line-height:1.35;}
+  .pmverdict.ok{color:var(--matchaDeep);}
+  .pmverdict.no{color:var(--rust);}
+  .pmsug{margin-top:6px;display:flex;flex-direction:column;gap:9px;}
+  .pmsug .s{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:var(--ink2);line-height:1.45;}
+  .pmsug .s .dot{margin-top:5px;width:8px;height:8px;border-radius:99px;background:var(--yolk);flex:0 0 auto;}
+  /* drill-in */
+  .tile{cursor:pointer;}
+  .tile:hover{transform:translateY(-2px);box-shadow:0 6px 18px rgba(120,100,70,.10);border-color:var(--line2);}
+  .tile.sel{outline:2px solid var(--matcha);outline-offset:1px;}
+  #teamDetail{margin-top:16px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:18px 20px;box-shadow:0 1px 2px rgba(120,100,70,.04);}
+  #teamDetail:empty{display:none;}
+  .tdhead{display:flex;justify-content:space-between;align-items:baseline;}
+  .tdname{font-size:15px;font-weight:700;}
+  .tdfit{font-family:var(--mono);font-weight:700;font-size:16px;}
+  .tdrow{display:flex;gap:18px;font-size:12px;color:var(--muted);margin:6px 0 14px;}
+  .dmlist{display:flex;flex-direction:column;gap:7px;margin-bottom:4px;}
+  .dm{display:flex;justify-content:space-between;font-size:13px;color:var(--ink2);border-bottom:1px solid var(--line);padding-bottom:6px;}
+  .dm .mono{font-family:var(--mono);font-weight:700;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="team">
+    <div class="name"><span id="teamName">Team Aurora</span><span class="mid"></span></div>
+    <div class="sub">Sample data · Q3 capacity</div>
+  </div>
+  <div class="seg" id="windowSeg">
+    <button data-win="month">Monthly</button>
+    <button data-win="quarter" class="on">Quarterly</button>
+  </div>
+  <div class="spacer"></div>
+  <div class="exportwrap">
+    <button class="ghost primary" id="exportBtn">Export ▾</button>
+    <div class="menu" id="exportMenu" hidden>
+      <button data-exp="sheet">Google Sheet (.csv)</button>
+      <button data-exp="pdf">PDF / print</button>
+      <button data-exp="json">JSON (.json)</button>
+    </div>
+  </div>
+</div>
+
+<nav class="views" id="views">
+  <button data-view="manager" class="on"><span class="vi">EM</span>Manager · one team</button>
+  <button data-view="director"><span class="vi">VP</span>Director · across teams</button>
+  <button data-view="pm"><span class="vi">PM</span>Will it land?</button>
+</nav>
+
+<div id="vManager">
+<div class="guide">
+  <span class="lead">How this works</span>
+  <div class="step"><span class="n">1</span><span>List your team</span></div>
+  <span class="arr">→</span>
+  <div class="step"><span class="n">2</span><span>Mark where the week goes</span></div>
+  <span class="arr">→</span>
+  <div class="step"><span class="n">3</span><span>Set what's reserved</span></div>
+  <span class="arr">→</span>
+  <div class="step"><span class="n">4</span><span>Add projects &amp; see the fit</span></div>
+</div>
+
+<div class="wrap">
+  <!-- ============ INPUTS ============ -->
+  <div class="main">
+
+    <section class="card">
+      <header>
+        <div class="top"><span class="eyebrow">1 · Supply</span><h3>Team roster</h3></div>
+        <p class="explain">Each person's <b>level</b> and <b>onboarding stage</b> decide how much of a “full” engineer they count as right now — a ramping new hire delivers less than a settled senior. Multiply them to get <b>effective FTE</b>.</p>
+      </header>
+      <div class="body">
+        <table class="roster">
+          <thead>
+            <tr>
+              <th>Engineer</th><th>Tenure</th><th>Level</th><th class="num">lvl ×</th>
+              <th>Onboarding role</th><th class="num">onb ×</th>
+              <th class="num">Alloc</th><th class="num">Eff. FTE</th><th></th>
+            </tr>
+          </thead>
+          <tbody id="rosterBody"></tbody>
+        </table>
+        <button class="addrow" id="addRow">+ Add engineer</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <header>
+        <div class="top"><span class="eyebrow">2 · Per-engineer baseline</span><h3>Where the week goes</h3></div>
+        <p class="explain">The slice of a normal week that never reaches project work — meetings, code review, time off. We count <b>each overhead once</b>. Drag toward your team's <b>ideal</b> to see capacity free up.</p>
+      </header>
+      <div class="body" id="overheadBody"></div>
+    </section>
+
+    <section class="card">
+      <header>
+        <div class="top"><span class="eyebrow">3 · Team reservations</span><h3>KTLO &amp; recurring work</h3></div>
+        <p class="explain"><b class="tip">KTLO<span class="ttx">“Keep The Lights On” — recurring upkeep that happens no matter what projects are running.</span></b> is work reserved <b>before</b> any project: support tickets, incidents, interviews, onboarding others. Whatever's left is real project capacity.</p>
+      </header>
+      <div class="body" id="ktloBody"></div>
+    </section>
+
+    <section class="card">
+      <header>
+        <div class="top"><span class="eyebrow">4 · Demand</span><h3>Projects this quarter</h3></div>
+        <p class="explain">Estimate each project in <b>person-months</b> and tap who's on it. Demand stacks against the net capacity above — the result panel shows what <b>fits</b> and what's <b>over</b>.</p>
+      </header>
+      <div class="body">
+        <table class="roster">
+          <thead><tr><th>Project</th><th>Assigned to</th><th class="num">Estimate</th><th></th></tr></thead>
+          <tbody id="projBody"></tbody>
+        </table>
+        <button class="addrow" id="addProj">+ Add project</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <header>
+        <div class="top"><span class="eyebrow">Check · per person</span><h3>Who's quietly overloaded</h3></div>
+        <p class="explain">The team total can fit while <b>one person</b> is buried. This spreads each project's estimate across whoever's assigned and compares it to that person's own capacity — over <b>100%</b> means overcommitted, even if the team “fits.”</p>
+      </header>
+      <div class="body" id="overloadBody"></div>
+    </section>
+  </div>
+
+  <!-- ============ LIVE RESULTS ============ -->
+  <aside class="rail">
+    <span class="rlab">Result · updates live</span>
+    <div class="hero">
+      <div class="lab">Net capacity this quarter</div>
+      <div class="big" id="netPM">2.7</div>
+      <div class="unit">person-months free for project work</div>
+      <div class="verdict" id="verdict"></div>
+    </div>
+
+    <div class="barwrap">
+      <div class="cap"><span>Free for projects</span><span>Reserved (KTLO)</span></div>
+      <div class="bar"><div class="net" id="barNet" style="width:50%"></div><div class="res" id="barRes" style="width:50%"></div></div>
+    </div>
+
+    <div style="margin-top:20px">
+      <div class="stat"><span class="k">Headcount<span class="info">i<span class="ttx">People on the team, weighted by how much time each is allocated here.</span></span></span><span class="v" id="sHeads">5</span></div>
+      <div class="stat"><span class="k">Effective FTE<span class="info">i<span class="ttx">How many “full-time” engineers you really have once level and ramp-up are accounted for. A first-month hire ≈ 0.25.</span></span></span><span class="v" id="sEff">3.5</span></div>
+      <div class="stat"><span class="k">Person-months available<span class="info">i<span class="ttx">One person working one month = 1 person-month. 6 pm = one engineer for six months, or three for two.</span></span></span><span class="v" id="sGross">5.4</span></div>
+      <div class="stat"><span class="k">Reserved (KTLO)</span><span class="v" id="sKtlo">50%</span></div>
+      <div class="stat"><span class="k">Net capacity</span><span class="v" id="sNet">2.7 <small>pm</small></span></div>
+    </div>
+
+    <div class="fit">
+      <div class="ft">Projects vs capacity</div>
+      <div class="fitbar"><div class="used" id="fitUsed" style="width:85%"></div><div class="over" id="fitOver" style="width:0%"></div></div>
+      <div class="fitrow"><span>Net capacity (supply)</span><b id="fSupply">2.7 pm</b></div>
+      <div class="fitrow"><span>Committed to projects</span><b id="fDemand">2.3 pm</b></div>
+      <div class="fitrow" style="border-top:1px solid var(--line);margin-top:4px;padding-top:7px"><span id="fLabel">Spare for more work</span><b id="fRemain">0.4 pm</b></div>
+    </div>
+
+    <p class="inwords" id="inWords"></p>
+
+    <div class="why">
+      <div class="wt">Why this matters</div>
+      <p id="whyText"></p>
+    </div>
+
+    <div class="glossary">
+      <div class="gt">Reserved capacity, by bucket</div>
+      <div class="legend" id="ktloLegend"></div>
+    </div>
+  </aside>
+</div>
+</div><!--/vManager-->
+
+<div id="vDirector" hidden>
+  <div class="vpage">
+    <div class="vhead"><div class="veyebrow">Director · Platform group</div><h2>Every team's fit at a glance</h2><p>Supply vs demand for each team you own — green has slack, amber is tight, red is over. <span id="dirSum"></span></p></div>
+    <div class="tiles" id="dirTiles"></div>
+    <div id="teamDetail"></div>
+    <div class="movewrap">
+      <div class="panel">
+        <h3>Move an engineer, see both sides</h3>
+        <div class="mvline">
+          <select id="mvFrom"></select>
+          <select id="mvWho"></select>
+          <span style="font-family:var(--mono);color:var(--matcha);font-weight:700">→</span>
+          <select id="mvTo"></select>
+          <button class="btn" id="mvGo">Move</button>
+        </div>
+        <div class="ba" id="mvBA"></div>
+      </div>
+      <div class="panel" style="background:var(--matchaTint);border-color:var(--matchaBd)">
+        <h3>Why this matters</h3>
+        <p style="margin:0;font-size:13px;color:var(--ink2);line-height:1.55">Reallocation is the lever a director actually pulls. Loaning from a team with slack to one in the red shows the cost on <b>both</b> sides — and never double-counts the engineer.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="vPM" hidden>
+  <div class="vpage">
+    <div class="vhead"><div class="veyebrow">PM · demand-first</div><h2>Will my project land this quarter?</h2><p>You don't build the roster — just ask. Enter the project and pick the team; you'll get a straight answer, and if it doesn't fit, what it would take.</p></div>
+    <div class="pmwrap">
+      <div class="pmcard">
+        <div class="field"><label>Project</label><input id="pmName" value="Fraud rules" /></div>
+        <div class="field"><label>Estimate · person-months</label><input id="pmEst" type="number" step="0.1" min="0" value="1.0" /></div>
+        <div class="field"><label>Which team?</label><select id="pmTeam"></select></div>
+      </div>
+      <div class="pmcard" id="pmResult"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // ---------- LOCKED DATA TYPES ----------
+  const LEVELS = {
+    'Intern':{m:0.70}, 'L2':{m:1.00}, 'L3':{m:1.00}, 'Staff':{m:0.85}, 'Principal':{m:0.70}
+  };
+  const ONBOARD = {
+    'New Hire: Month 1':0.25,'New Hire: Month 2':0.50,'New Hire: Month 3':0.75,
+    'Mentor: Month 1':0.85,'Mentor: Month 2':0.90,'Mentor: Month 3':0.95,'Not Applicable':1.00
+  };
+  const TENURE = ['< 4 months','4–12 months','1–2 years','2–4 years','> 4 years'];
+
+  const mk=(name,ten,lvl,onb,alloc)=>({name,ten,lvl,onb,alloc});
+  const ovr=()=>[
+    {k:'Paid time off',      d:'21 days PTO / year',               cur:8,  ideal:8},
+    {k:'Sick leave',         d:'unplanned absences',               cur:2,  ideal:2},
+    {k:'Public holidays',    d:'~10 days / year',                  cur:4,  ideal:4},
+    {k:'Company + offsites', d:'events & team offsites',           cur:8,  ideal:8},
+    {k:'Meetings & rituals', d:'standups, planning, 1:1s, retros', cur:10, ideal:8},
+    {k:'PR reviews',         d:'reviewing code',                   cur:7,  ideal:7},
+    {k:'Cross-functional',   d:'helping other teams',              cur:5,  ideal:5},
+    {k:'Learning & dev',     d:'2 hours per week',                 cur:5,  ideal:5},
+  ];
+  const ktl=()=>[
+    {k:'Support tickets',         cur:15, ideal:10, c:'#6E8B57'},
+    {k:'Escalations / incidents', cur:15, ideal:5,  c:'#C0533A'},
+    {k:'Interviews',              cur:5,  ideal:5,  c:'#E8B23C'},
+    {k:'Onboarding others',       cur:10, ideal:0,  c:'#8E6416'},
+    {k:'PTO / holidays / events', cur:5,  ideal:5,  c:'#A9A294'},
+  ];
+  let teams=[
+    {name:'Payments', over:ovr(), ktlo:ktl(), win:'quarter',
+      roster:[mk('Ana Idris','> 4 years','Staff','Not Applicable',1),mk('Bo Rana','2–4 years','L3','Not Applicable',1),mk('Cy Okafor','1–2 years','L3','Not Applicable',1),mk('Dot Vance','< 4 months','L2','New Hire: Month 2',1)],
+      projects:[{name:'Card vault',est:1.4,team:[0,1]},{name:'Payout API',est:1.0,team:[2]}]},
+    {name:'Growth', over:ovr(), ktlo:ktl(), win:'quarter',
+      roster:[mk('Devi Shah','> 4 years','L3','Not Applicable',1),mk('Ed Lim','2–4 years','L3','Not Applicable',1)],
+      projects:[{name:'Referral loop',est:0.9,team:[0]},{name:'Onboarding funnel',est:0.5,team:[1]}]},
+    {name:'Aurora', over:ovr(), ktlo:ktl(), win:'quarter',
+      roster:[mk('Alex Rivera','> 4 years','L3','Mentor: Month 1',1),mk('Sam Chen','1–2 years','L3','Mentor: Month 1',1),mk('Jordan Lee','> 4 years','L3','Not Applicable',1),mk('Priya Nair','< 4 months','L2','New Hire: Month 3',1),mk('Diego Torres','< 4 months','Intern','New Hire: Month 1',0.5)],
+      projects:[{name:'Search revamp',est:1.2,team:[0,1]},{name:'Billing migration',est:0.8,team:[2]},{name:'Onboarding tooling',est:0.3,team:[3]}]},
+    {name:'Mobile', over:ovr(), ktlo:ktl(), win:'quarter',
+      roster:[mk('Fia Berg','2–4 years','L3','Not Applicable',1),mk('Gabe Ross','1–2 years','L2','Not Applicable',1)],
+      projects:[{name:'App rewrite',est:2.0,team:[0,1]}]},
+    {name:'Data', over:ovr(), ktlo:ktl(), win:'quarter',
+      roster:[mk('Hana Cole','> 4 years','Staff','Not Applicable',1),mk('Ivo Pak','2–4 years','L3','Not Applicable',1),mk('Jed Moss','1–2 years','L3','Not Applicable',1)],
+      projects:[{name:'Warehouse v2',est:1.4,team:[0,1]}]},
+    {name:'Identity', over:ovr(), ktlo:ktl(), win:'quarter',
+      roster:[mk('Kit Snow','2–4 years','L3','Not Applicable',1),mk('Lin Yu','< 4 months','L2','New Hire: Month 2',1)],
+      projects:[{name:'SSO revamp',est:1.3,team:[0]}]},
+  ];
+  let cur=2;
+  let roster, OVERHEAD, KTLO, projects, win, R={};
+  function calc(t){
+    const eff=t.roster.reduce((s,r)=>s+r.alloc*LEVELS[r.lvl].m*ONBOARD[r.onb],0);
+    const prod=Math.max(0,1-t.over.reduce((s,f)=>s+f.cur,0)/100);
+    const weeks=t.win==='month'?4.33:12;
+    const gross=eff*(weeks/4)*prod;
+    const ktloTot=t.ktlo.reduce((s,f)=>s+f.cur,0)/100;
+    return {eff,gross,ktloTot,net:gross*(1-ktloTot),demand:t.projects.reduce((s,p)=>s+(+p.est||0),0),heads:t.roster.reduce((s,r)=>s+r.alloc,0)};
+  }
+  function loadTeam(i){
+    cur=i; const t=teams[i];
+    roster=t.roster; OVERHEAD=t.over; KTLO=t.ktlo; projects=t.projects; win=t.win;
+    const nm=$('#teamName'); if(nm) nm.textContent=t.name;
+    document.querySelectorAll('#windowSeg button').forEach(b=>b.classList.toggle('on',b.dataset.win===win));
+    renderRoster(); renderOverhead(); renderKtlo(); renderProjects(); compute();
+  }
+  const sign=v=>(v>=0?'+':'')+fmt(v,1);
+
+  const $=s=>document.querySelector(s);
+  const fmt=(n,d=1)=>(Math.round(n*Math.pow(10,d))/Math.pow(10,d)).toFixed(d);
+  const opt=(list,sel)=>list.map(v=>`<option ${v===sel?'selected':''}>${v}</option>`).join('');
+
+  function renderRoster(){
+    const tb=$('#rosterBody'); tb.innerHTML='';
+    roster.forEach((r,i)=>{
+      const lm=LEVELS[r.lvl].m, om=ONBOARD[r.onb], eff=r.alloc*lm*om;
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td><span class="ename">${r.name}</span></td>
+        <td><select data-i="${i}" data-f="ten">${opt(TENURE,r.ten)}</select></td>
+        <td><select data-i="${i}" data-f="lvl">${opt(Object.keys(LEVELS),r.lvl)}</select></td>
+        <td class="num"><span class="mult">${fmt(lm,2)}</span></td>
+        <td><select data-i="${i}" data-f="onb">${opt(Object.keys(ONBOARD),r.onb)}</select></td>
+        <td class="num"><span class="mult">${fmt(om,2)}</span></td>
+        <td class="num"><select data-i="${i}" data-f="alloc">${opt(['1','0.75','0.5','0.25'],String(r.alloc))}</select></td>
+        <td class="num"><span class="effcap">${fmt(eff,2)}</span></td>
+        <td><button class="rowdel" data-del="${i}" title="remove">×</button></td>`;
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderOverhead(){
+    const b=$('#overheadBody'); b.innerHTML='';
+    OVERHEAD.forEach((f,i)=>{
+      const over=f.cur>f.ideal;
+      const d=document.createElement('div'); d.className='factor';
+      d.innerHTML=`
+        <div class="flabel"><b>${f.k}</b><span>${f.d}</span></div>
+        <input type="range" min="0" max="20" step="1" value="${f.cur}" data-oh="${i}">
+        <div class="fval"><span class="cur">${f.cur}%</span><span class="ideal ${over?'over':''}">ideal <span class="ed idealed" contenteditable data-ohi="${i}">${f.ideal}</span>%</span></div>`;
+      b.appendChild(d);
+    });
+    const tot=OVERHEAD.reduce((s,f)=>s+f.cur,0);
+    const d=document.createElement('div'); d.className='totrow';
+    d.innerHTML=`<span class="k">Overhead → leaves productive time</span><span class="v">${tot}% → ${100-tot}%</span>`;
+    b.appendChild(d);
+  }
+
+  function renderKtlo(){
+    const b=$('#ktloBody'); b.innerHTML='';
+    KTLO.forEach((f,i)=>{
+      const over=f.cur>f.ideal;
+      const d=document.createElement('div'); d.className='factor';
+      d.innerHTML=`
+        <div class="flabel"><b><span style="display:inline-block;width:9px;height:9px;border-radius:3px;background:${f.c};margin-right:7px;vertical-align:middle"></span>${f.k}</b><span>ideal target <span class="ed idealed" contenteditable data-kti="${i}">${f.ideal}</span>%</span></div>
+        <input type="range" min="0" max="30" step="1" value="${f.cur}" data-kt="${i}">
+        <div class="fval"><span class="cur">${f.cur}%</span><span class="ideal ${over?'over':''}">${over?'+'+(f.cur-f.ideal)+' over':'on target'}</span></div>`;
+      b.appendChild(d);
+    });
+    const tot=KTLO.reduce((s,f)=>s+f.cur,0);
+    const d=document.createElement('div'); d.className='totrow';
+    d.innerHTML=`<span class="k">Total reserved before projects</span><span class="v">${tot}%</span>`;
+    b.appendChild(d);
+  }
+
+  function compute(){
+    const heads=roster.reduce((s,r)=>s+r.alloc,0);
+    const effFTE=roster.reduce((s,r)=>s+r.alloc*LEVELS[r.lvl].m*ONBOARD[r.onb],0);
+    const ohFrac=OVERHEAD.reduce((s,f)=>s+f.cur,0)/100;
+    const prodFrac=Math.max(0,1-ohFrac);
+    const weeks=win==='month'?4.33:12;
+    const grossPM=effFTE*(weeks/4)*prodFrac;
+    const ktloTot=KTLO.reduce((s,f)=>s+f.cur,0)/100;
+    const netPM=grossPM*(1-ktloTot);
+
+    $('#netPM').textContent=fmt(netPM,1);
+    $('#sHeads').textContent=heads%1?fmt(heads,1):heads;
+    $('#sEff').textContent=fmt(effFTE,1);
+    $('#sGross').textContent=fmt(grossPM,1);
+    $('#sKtlo').textContent=Math.round(ktloTot*100)+'%';
+    $('#sNet').innerHTML=`${fmt(netPM,1)} <small>pm</small>`;
+
+    const netPct=Math.max(2,Math.min(98,Math.round((1-ktloTot)*100)));
+    $('#barNet').style.width=netPct+'%';
+    $('#barRes').style.width=(100-netPct)+'%';
+
+    $('#verdict').innerHTML=`That's about <b>one engineer for ${fmt(netPM,1)} months</b> — what's truly free once everything else is paid for.`;
+
+    const idealKtlo=KTLO.reduce((s,f)=>s+f.ideal,0);
+    const overPts=Math.round(ktloTot*100)-idealKtlo;
+    $('#whyText').innerHTML = overPts>4
+      ? `You're reserving <b>${overPts} points more</b> than your ideal for KTLO. Trimming escalations &amp; onboarding toward target would free roughly <b>${fmt(grossPM*overPts/100,1)} more person-months</b> for projects.`
+      : `Reservations are close to ideal — so <b>${fmt(netPM,1)} person-months</b> is a number you can commit to with confidence.`;
+
+    const demand=projects.reduce((s,p)=>s+(+p.est||0),0);
+    const remain=netPM-demand;
+    const usedPct=netPM<=0?100:Math.max(0,Math.min(100,demand/netPM*100));
+    $('#fitUsed').style.width=(remain>=0?usedPct:100)+'%';
+    $('#fitOver').style.width=(remain>=0?0:Math.min(100,(-remain)/Math.max(demand,0.01)*100))+'%';
+    $('#fSupply').textContent=fmt(netPM,1)+' pm';
+    $('#fDemand').textContent=fmt(demand,1)+' pm';
+    $('#fLabel').textContent=remain>=0?'Spare for more work':'Over by';
+    const fr=$('#fRemain'); fr.textContent=fmt(Math.abs(remain),1)+' pm'; fr.style.color=remain>=0?'var(--matchaDeep)':'var(--rust)';
+    $('#inWords').innerHTML=`${teams[cur].name}'s <b>${fmt(heads,heads%1?1:0)}</b> people work out to <b>${fmt(effFTE,1)}</b> effective engineers. Over the ${win==='month'?'month':'quarter'} that's <b>${fmt(grossPM,1)}</b> person-months of real time; with <b>${Math.round(ktloTot*100)}%</b> reserved to keep the lights on, <b>${fmt(netPM,1)}</b> is free for projects — which need <b>${fmt(demand,1)}</b>, leaving <b>${fmt(Math.abs(remain),1)}</b> ${remain>=0?'spare':'short'}.`;
+    R={effFTE:+effFTE.toFixed(2),grossPM:+grossPM.toFixed(2),ktloPct:Math.round(ktloTot*100),netPM:+netPM.toFixed(2),demand:+demand.toFixed(2),remain:+remain.toFixed(2),heads:+heads};
+
+    const leg=$('#ktloLegend'); leg.innerHTML='';
+    KTLO.forEach(f=>{
+      const row=document.createElement('div'); row.className='segrow';
+      row.innerHTML=`<span class="dot" style="background:${f.c}"></span><span class="nm">${f.k}</span><span class="pc" style="color:${f.cur>f.ideal?'#C0533A':'#56524A'}">${f.cur}%</span>`;
+      leg.appendChild(row);
+    });
+    renderOverload();
+  }
+
+  function renderProjects(){
+    const b=$('#projBody'); b.innerHTML='';
+    projects.forEach((p,i)=>{
+      const chips=roster.map((r,ri)=>`<span class="chip ${p.team.includes(ri)?'on':''}" data-pa="${i}" data-ri="${ri}">${r.name.split(' ')[0]}</span>`).join('');
+      const none=p.team.length===0?`<span class="chip warnchip">unassigned</span>`:'';
+      const tr=document.createElement('tr');
+      tr.innerHTML=`
+        <td><span class="ename ed" contenteditable data-pn="${i}">${p.name}</span></td>
+        <td><div class="chips">${chips}${none}</div></td>
+        <td class="num"><span class="estcell ed" contenteditable data-pe="${i}">${fmt(p.est,1)}</span> <span class="mult">pm</span></td>
+        <td><button class="rowdel" data-pdel="${i}" title="remove">×</button></td>`;
+      b.appendChild(tr);
+    });
+    const tot=projects.reduce((s,p)=>s+(+p.est||0),0);
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td><span class="ename" style="color:var(--muted)">Total demand</span></td><td></td><td class="num"><span class="effcap">${fmt(tot,1)}</span> <span class="mult">pm</span></td><td></td>`;
+    b.appendChild(tr);
+  }
+
+  const clampInt=t=>Math.max(0,Math.round(parseFloat(t)||0));
+  function dl(name,text,type){ const blob=new Blob([text],{type}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; document.body.appendChild(a); a.click(); a.remove(); }
+  function buildExport(){ return { team:teams[cur].name, window:win, roster:roster.map(r=>({name:r.name,tenure:r.ten,level:r.lvl,onboarding:r.onb,alloc:r.alloc,effFTE:+(r.alloc*LEVELS[r.lvl].m*ONBOARD[r.onb]).toFixed(3)})), overhead:OVERHEAD, ktlo:KTLO, projects:projects, results:R }; }
+  function toCSV(){ const q=v=>`"${String(v).replace(/"/g,'""')}"`; const L=[]; L.push(teams[cur].name+' — capacity export'); L.push(''); L.push(['Engineer','Tenure','Level','Onboarding','Alloc','Eff FTE'].map(q).join(',')); roster.forEach(r=>L.push([r.name,r.ten,r.lvl,r.onb,r.alloc,(r.alloc*LEVELS[r.lvl].m*ONBOARD[r.onb]).toFixed(2)].map(q).join(','))); L.push(''); L.push(['Project','Estimate (pm)'].map(q).join(',')); projects.forEach(p=>L.push([p.name,p.est].map(q).join(','))); L.push(''); L.push(['Summary','Value'].map(q).join(',')); [['Effective FTE',R.effFTE],['Person-months available',R.grossPM],['Reserved KTLO %',R.ktloPct],['Net capacity (pm)',R.netPM],['Committed to projects (pm)',R.demand],['Spare (pm)',R.remain]].forEach(r=>L.push(r.map(q).join(','))); return L.join('\n'); }
+  function doExport(kind){ if(kind==='pdf'){ window.print(); return; } if(kind==='json'){ dl('team-aurora-capacity.json',JSON.stringify(buildExport(),null,2),'application/json'); } if(kind==='sheet'){ dl('team-aurora-capacity.csv',toCSV(),'text/csv'); } }
+
+  function renderOverload(){
+    const b=$('#overloadBody'); if(!b) return; b.innerHTML='';
+    const prodFrac=Math.max(0,1-OVERHEAD.reduce((s,f)=>s+f.cur,0)/100);
+    const weeks=win==='month'?4.33:12;
+    const ktloTot=KTLO.reduce((s,f)=>s+f.cur,0)/100;
+    let anyOver=false;
+    roster.forEach((r,i)=>{
+      const personNet=r.alloc*LEVELS[r.lvl].m*ONBOARD[r.onb]*(weeks/4)*prodFrac*(1-ktloTot);
+      const assigned=projects.reduce((s,p)=>s+(p.team.includes(i)?(+p.est||0)/Math.max(p.team.length,1):0),0);
+      const load=personNet<=0?(assigned>0?200:0):assigned/personNet*100;
+      const over=load>100; if(over) anyOver=true;
+      const row=document.createElement('div'); row.className='loadrow';
+      row.innerHTML=`<span class="ln">${r.name}</span><div class="loadbar"><i style="width:${Math.min(100,load)}%;background:${over?'var(--rust)':'var(--matcha)'}"></i></div><span class="loadpct" style="color:${over?'var(--rust)':'var(--matchaDeep)'}">${Math.round(load)}%</span>`;
+      b.appendChild(row);
+    });
+    const note=document.createElement('p'); note.className='inwords'; note.style.marginTop='14px';
+    note.innerHTML=anyOver?`Someone's over <b>100%</b> — the quarter can “fit” on the team total while landing too hard on one person. Rebalance who's assigned, or move scope.`:`No one's overcommitted — the load is spread evenly across the team.`;
+    b.appendChild(note);
+  }
+
+  function renderDirector(){
+    const grid=$('#dirTiles'); if(!grid) return; grid.innerHTML='';
+    let totS=0,totD=0;
+    teams.forEach((t,i)=>{
+      const c=calc(t), s=c.net, d=c.demand, fit=s-d; totS+=s; totD+=d;
+      const col=fit>=0.3?'var(--matcha)':fit>=-0.15?'var(--yolk)':'var(--rust)';
+      const over=fit<0, usedPct=Math.max(0,Math.min(100,d/Math.max(s,0.01)*100));
+      const tile=document.createElement('div'); tile.className='tile'+(over?' red':''); tile.dataset.ti=i;
+      const badge=i===cur?' <span style="font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--matchaDeep);background:var(--matchaTint);border:1px solid var(--matchaBd);border-radius:99px;padding:1px 6px;margin-left:5px">open</span>':'';
+      tile.innerHTML=`<div class="tn"><span style="width:9px;height:9px;border-radius:3px;background:${col};display:inline-block"></span>${t.name}${badge}</div><div class="tbar"><div class="u" style="width:${over?100:usedPct}%"></div>${over?`<div class="o" style="width:${Math.min(45,(-fit)/Math.max(d,0.01)*100)}%"></div>`:''}</div><div class="trow"><span>supply ${fmt(s,1)}</span><span>demand ${fmt(d,1)}</span></div><div class="tfit" style="color:${over?'var(--rust)':'var(--matchaDeep)'}">${sign(fit)} pm</div>`;
+      grid.appendChild(tile);
+    });
+    const net=totS-totD, sum=$('#dirSum');
+    if(sum) sum.innerHTML=`Group net <b style="font-family:var(--mono);color:${net>=0?'var(--matchaDeep)':'var(--rust)'}">${sign(net)} pm</b> across ${teams.length} teams.`;
+    fillMoveSelects();
+  }
+  function fillMoveSelects(){
+    const from=$('#mvFrom'),to=$('#mvTo'),who=$('#mvWho'); if(!from) return;
+    const names=teams.map(t=>t.name);
+    if(!from.dataset.init){ from.innerHTML=opt(names,'Data'); to.innerHTML=opt(names,'Aurora'); from.dataset.init='1'; }
+    const ft=teams.find(t=>t.name===from.value)||teams[0];
+    who.innerHTML=ft.roster.map(r=>`<option>${r.name}</option>`).join('');
+  }
+  function doMove(){
+    const ft=teams.find(t=>t.name===$('#mvFrom').value), tt=teams.find(t=>t.name===$('#mvTo').value);
+    if(!ft||!tt||ft===tt) return;
+    const whoN=$('#mvWho').value; const idx=ft.roster.findIndex(r=>r.name===whoN); if(idx<0) return;
+    const fb=calc(ft), tb=calc(tt);
+    const [m]=ft.roster.splice(idx,1);
+    ft.projects.forEach(p=>{ p.team=p.team.filter(x=>x!==idx).map(x=>x>idx?x-1:x); });
+    tt.roster.push(m);
+    const fa=calc(ft), ta=calc(tt);
+    renderDirector();
+    if(cur===teams.indexOf(ft)||cur===teams.indexOf(tt)) loadTeam(cur);
+    $('#mvBA').innerHTML=`<div class="bx"><div class="bxn">${ft.name} · − ${m.name.split(' ')[0]}</div><div class="bxf">${sign(fb.net-fb.demand)} → ${sign(fa.net-fa.demand)} pm</div></div><div class="bx dest"><div class="bxn">${tt.name} · + ${m.name.split(' ')[0]}</div><div class="bxf">${sign(tb.net-tb.demand)} → ${sign(ta.net-ta.demand)} pm</div></div>`;
+  }
+  function showTeamDetail(i){
+    const t=teams[i], el=$('#teamDetail'); if(!t||!el) return;
+    document.querySelectorAll('#dirTiles .tile').forEach(x=>x.classList.toggle('sel',+x.dataset.ti===i));
+    const c=calc(t), fit=c.net-c.demand, over=fit<0;
+    const mem=t.roster.map(r=>`<div class="dm"><span>${r.name}</span><span class="mono">${r.lvl} · ${fmt(r.alloc*LEVELS[r.lvl].m*ONBOARD[r.onb],2)} FTE</span></div>`).join('');
+    el.innerHTML=`<div class="tdhead"><span class="tdname">${t.name}${i===cur?' · open':''}</span><span class="tdfit" style="color:${over?'var(--rust)':'var(--matchaDeep)'}">${sign(fit)} pm</span></div><div class="tdrow"><span>supply ${fmt(c.net,1)}</span><span>demand ${fmt(c.demand,1)}</span><span>${t.roster.length} people</span></div><div class="dmlist">${mem}</div><button class="btn" id="openMgr" data-ti="${i}" style="margin-top:14px">Open ${t.name} in Manager view →</button>`;
+  }
+  function renderPMTeam(){ const s=$('#pmTeam'); if(!s) return; if(!s.dataset.init){ s.innerHTML=teams.map(t=>`<option ${t.name==='Aurora'?'selected':''}>${t.name}</option>`).join(''); s.dataset.init='1'; } }
+  function computePM(){
+    const nm=$('#pmName'); if(!nm) return;
+    const name=nm.value||'This project', est=Math.max(0,parseFloat($('#pmEst').value)||0);
+    const t=teams.find(x=>x.name===$('#pmTeam').value)||teams[2];
+    const c=calc(t), spare=c.net-c.demand, res=$('#pmResult');
+    if(est<=spare){
+      res.innerHTML=`<div class="pmverdict ok">Yes — “${name}” lands on ${t.name}.</div><p style="margin:13px 0 0;font-size:13px;color:var(--ink2);line-height:1.55">${t.name} has <b>${sign(spare)} pm</b> spare and this needs <b>${fmt(est,1)}</b>. You'd have <b>${fmt(spare-est,1)} pm</b> left over.</p>`;
+    } else {
+      const gap=est-spare;
+      res.innerHTML=`<div class="pmverdict no">Not as-is — “${name}” is ${fmt(gap,1)} pm short on ${t.name}.</div><p style="margin:12px 0 6px;font-size:12.5px;color:var(--muted)">It lands if you:</p><div class="pmsug"><div class="s"><span class="dot"></span>Free <b style="white-space:nowrap">~${fmt(gap,1)} pm</b> by trimming KTLO / reserved work on ${t.name}</div><div class="s"><span class="dot"></span>Push another project (~${fmt(gap,1)} pm) to next quarter</div><div class="s"><span class="dot"></span>Loan an engineer (~${fmt(gap,1)} pm) from a team with slack — see the Director view</div></div>`;
+    }
+  }
+  function setView(v){
+    document.querySelectorAll('#views button').forEach(b=>b.classList.toggle('on',b.dataset.view===v));
+    $('#vManager').hidden=v!=='manager'; $('#vDirector').hidden=v!=='director'; $('#vPM').hidden=v!=='pm';
+    if(v==='director') renderDirector();
+    if(v==='pm'){ renderPMTeam(); computePM(); }
+  }
+
+  function renderAll(){ loadTeam(cur); renderDirector(); renderPMTeam(); computePM(); }
+
+  document.addEventListener('change',e=>{
+    const s=e.target;
+    if(s.matches('select[data-i]')){ const i=+s.dataset.i,f=s.dataset.f; roster[i][f]=f==='alloc'?+s.value:s.value; renderRoster(); compute(); }
+    if(s.id==='mvFrom'){ fillMoveSelects(); }
+    if(s.id==='pmTeam'){ computePM(); }
+  });
+  document.addEventListener('input',e=>{
+    const s=e.target;
+    if(s.matches('input[data-oh]')){ OVERHEAD[+s.dataset.oh].cur=+s.value; renderOverhead(); compute(); }
+    if(s.matches('input[data-kt]')){ KTLO[+s.dataset.kt].cur=+s.value; renderKtlo(); compute(); }
+    if(s.id==='pmName'||s.id==='pmEst'){ computePM(); }
+  });
+  document.addEventListener('blur',e=>{
+    const s=e.target;
+    if(s.matches('[data-ohi]')){ OVERHEAD[+s.dataset.ohi].ideal=clampInt(s.textContent); renderOverhead(); compute(); }
+    else if(s.matches('[data-kti]')){ KTLO[+s.dataset.kti].ideal=clampInt(s.textContent); renderKtlo(); compute(); }
+    else if(s.matches('[data-pn]')){ projects[+s.dataset.pn].name=s.textContent.trim()||'Untitled'; }
+    else if(s.matches('[data-pe]')){ projects[+s.dataset.pe].est=Math.max(0,parseFloat(s.textContent)||0); renderProjects(); compute(); }
+  },true);
+  document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&e.target.matches('[contenteditable]')){ e.preventDefault(); e.target.blur(); } });
+
+  document.addEventListener('click',e=>{
+    const vb=e.target.closest('#views button'); if(vb){ setView(vb.dataset.view); return; }
+    if(e.target.id==='mvGo'){ doMove(); return; }
+    if(e.target.id==='openMgr'){ loadTeam(+e.target.dataset.ti); setView('manager'); window.scrollTo(0,0); return; }
+    const dtile=e.target.closest('#dirTiles .tile'); if(dtile){ showTeamDetail(+dtile.dataset.ti); return; }
+    if(e.target.matches('[data-del]')){ roster.splice(+e.target.dataset.del,1); renderRoster(); renderProjects(); compute(); return; }
+    if(e.target.id==='addRow'){ roster.push({name:'New engineer',ten:'< 4 months',lvl:'L2',onb:'New Hire: Month 1',alloc:1.0}); renderRoster(); renderProjects(); compute(); return; }
+    if(e.target.matches('[data-pdel]')){ projects.splice(+e.target.dataset.pdel,1); renderProjects(); compute(); return; }
+    if(e.target.id==='addProj'){ projects.push({name:'New project',est:0.5,team:[]}); renderProjects(); compute(); return; }
+    const chip=e.target.closest('.chip[data-pa]');
+    if(chip){ const pi=+chip.dataset.pa,ri=+chip.dataset.ri,t=projects[pi].team,k=t.indexOf(ri); k>=0?t.splice(k,1):t.push(ri); renderProjects(); compute(); return; }
+    if(e.target.id==='exportBtn'){ const m=$('#exportMenu'); m.hidden=!m.hidden; e.stopPropagation(); return; }
+    if(e.target.matches('[data-exp]')){ doExport(e.target.dataset.exp); $('#exportMenu').hidden=true; return; }
+    const em=$('#exportMenu'); if(em&&!em.hidden&&!e.target.closest('.exportwrap')) em.hidden=true;
+    const wb=e.target.closest('#windowSeg button');
+    if(wb){ win=wb.dataset.win; teams[cur].win=win; document.querySelectorAll('#windowSeg button').forEach(b=>b.classList.toggle('on',b===wb)); compute(); }
+  });
+
+  renderAll();
+})();
+</script>
+</body>
+</html>

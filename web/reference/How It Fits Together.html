@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>How it fits together</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&family=Newsreader:ital,opsz,wght@0,6..72,400;0,6..72,500;1,6..72,400&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --oat:#FAF7EF; --paper:#FFFFFF; --sunk:#F3EFE4;
+    --ink:#23211B; --ink2:#4C483E; --t2:#56524A; --muted:#777165; --faint:#A9A294;
+    --line:#E8E2D5; --line2:#DAD3C3; --hard:#C7C0B0;
+    --matcha:#6E8B57; --matchaDeep:#4E6B3A; --matchaTint:#EDF1E5; --matchaBd:#DBE3CF;
+    --yolk:#E8B23C; --yolkTint:#FBEDC6; --yolkText:#6A5320; --rust:#C0533A;
+    --mono:"Space Mono",ui-monospace,monospace; --sans:"Hanken Grotesk",system-ui,sans-serif; --serif:"Newsreader",Georgia,serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--oat);color:var(--ink);font-family:var(--sans);}
+  .page{max-width:1060px;margin:0 auto;padding:48px 36px 90px;}
+  .ey{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.18em;text-transform:uppercase;color:var(--matchaDeep);}
+  h1{font-family:var(--serif);font-weight:400;font-size:40px;letter-spacing:-.02em;margin:14px 0 0;line-height:1.05;}
+  h1 em{font-style:italic;}
+  .lede{margin:14px 0 0;font-size:16px;color:var(--ink2);line-height:1.6;max-width:60ch;}
+  .lede b{font-weight:600;color:var(--ink);}
+
+  .block{margin-top:46px;}
+  .bh{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;}
+  .bn{font-family:var(--mono);font-size:13px;font-weight:700;color:var(--matcha);}
+  .block h2{font-size:20px;font-weight:700;margin:0;letter-spacing:-.01em;white-space:nowrap;}
+  .bsub{font-size:14px;color:var(--muted);margin:4px 0 22px;line-height:1.55;max-width:66ch;}
+
+  /* group + teams tree */
+  .tree{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:26px;box-shadow:0 1px 2px rgba(120,100,70,.04);}
+  .groupbar{display:flex;align-items:center;gap:14px;background:var(--ink);color:var(--paper);border-radius:12px;padding:14px 20px;}
+  .groupbar .gl{font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--yolk);}
+  .groupbar .gn{font-size:16px;font-weight:700;white-space:nowrap;}
+  .groupbar .gv{margin-left:auto;font-family:var(--mono);font-size:20px;font-weight:700;}
+  .groupbar .gv small{font-size:11px;color:#C9C2B3;font-weight:400;}
+  .feeds{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--muted);font-size:11.5px;padding:12px 0 14px;}
+  .feeds .ln{flex:1;height:1px;background:var(--line2);}
+  .teamrow{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;}
+  @media(max-width:760px){.teamrow{grid-template-columns:repeat(2,1fr);}}
+  .tcard{border:1px solid var(--line2);border-radius:12px;padding:14px;background:var(--paper);position:relative;}
+  .tcard .tt{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:700;}
+  .tcard .badge{font-family:var(--mono);font-size:8px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;border-radius:99px;padding:2px 7px;}
+  .badge.live{color:var(--matchaDeep);background:var(--matchaTint);border:1px solid var(--matchaBd);}
+  .badge.flat{color:var(--muted);background:var(--sunk);border:1px solid var(--line2);}
+  .ws{margin:11px 0 10px;display:flex;flex-direction:column;gap:5px;}
+  .ws i{height:5px;border-radius:3px;background:var(--matcha);display:block;}
+  .ws.flat i{background:var(--line2);}
+  .ws .lbl{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--faint);margin-bottom:2px;}
+  .tfit{font-family:var(--mono);font-weight:700;font-size:14px;}
+  .tcard.dim{opacity:.62;}
+
+  /* before/after */
+  .ba{display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+  @media(max-width:760px){.ba{grid-template-columns:1fr;}}
+  .state{border:1px solid var(--line);border-radius:14px;padding:18px 20px;background:var(--paper);}
+  .state.prop{border-color:var(--matchaBd);background:var(--matchaTint);}
+  .state .st{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .state.prop .st{color:var(--matchaDeep);}
+  .state h3{font-size:16px;font-weight:700;margin:7px 0 4px;}
+  .state p{font-size:13px;color:var(--ink2);line-height:1.5;margin:0 0 14px;}
+  .minis{display:flex;flex-wrap:wrap;gap:7px;}
+  .mini{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:600;border:1px solid var(--line2);border-radius:8px;padding:5px 9px;background:var(--paper);}
+  .mini .pdot{width:14px;height:14px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;font-family:var(--mono);font-weight:700;}
+  .pdot.on{background:var(--matcha);} .pdot.off{background:var(--line2);color:var(--muted);}
+
+  /* drill steps */
+  .steps{display:grid;grid-template-columns:1fr auto 1fr auto 1fr;gap:12px;align-items:center;}
+  @media(max-width:760px){.steps{grid-template-columns:1fr;}.steps .arr{transform:rotate(90deg);justify-self:center;}}
+  .step{border:1px solid var(--line);border-radius:14px;padding:16px;background:var(--paper);min-height:188px;}
+  .step .sl{font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);}
+  .step h4{font-size:13.5px;font-weight:700;margin:6px 0 12px;}
+  .arr{font-family:var(--mono);color:var(--matcha);font-size:20px;font-weight:700;text-align:center;}
+  .ogrid{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;}
+  .ocell{height:26px;border-radius:6px;background:var(--sunk);border:1px solid var(--line2);}
+  .ocell.hot{background:var(--matchaTint);border-color:var(--matcha);box-shadow:0 0 0 2px var(--matcha);}
+  .cursor{font-size:15px;}
+  /* manager mini */
+  .mgr .row{display:flex;align-items:center;gap:6px;margin-bottom:6px;}
+  .mgr .row .av{width:14px;height:14px;border-radius:99px;background:var(--sunk);border:1px solid var(--line2);}
+  .mgr .row .bar{flex:1;height:5px;border-radius:3px;background:var(--matcha);}
+  .mgr .sld{height:4px;border-radius:3px;background:var(--line2);position:relative;margin:9px 0;}
+  .mgr .sld::after{content:"";position:absolute;left:55%;top:-4px;width:11px;height:11px;border-radius:99px;background:var(--paper);border:2px solid var(--matchaDeep);}
+  .mgr .fit{margin-top:8px;background:var(--ink);color:#fff;border-radius:8px;padding:7px 10px;display:flex;justify-content:space-between;align-items:center;}
+  .mgr .fit .k{font-family:var(--mono);font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:var(--yolk);}
+  .mgr .fit .v{font-family:var(--mono);font-weight:700;font-size:14px;}
+  .rollback{margin-top:14px;text-align:center;font-size:12.5px;color:var(--matchaDeep);font-weight:600;}
+  .rollback span{font-family:var(--mono);}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="ey">Capacity · the idea</div>
+  <h1>An org is just a <em>stack of team models</em></h1>
+  <p class="lede">Each team has its own little capacity model — roster, overhead, reserved work, projects → a <b>fit number</b>. The director's roll-up is nothing more than <b>all those fit numbers added up</b>. “Making every team editable” means every tile is a real model you can open, not a typed-in guess.</p>
+
+  <!-- BLOCK 1 -->
+  <section class="block">
+    <div class="bh"><span class="bn">1</span><h2>The shape</h2></div>
+    <p class="bsub">The group total on top is the sum of the teams below it. Today only <b style="color:var(--matchaDeep)">Aurora</b> is a live model; the rest are flat numbers someone typed.</p>
+    <div class="tree">
+      <div class="groupbar"><span class="gl">Platform group</span><span class="gn">6 teams</span><span class="gv">+2.7<small> pm net</small></span></div>
+      <div class="feeds"><span class="ln"></span>each team's fit feeds up ↑<span class="ln"></span></div>
+      <div class="teamrow">
+        <div class="tcard">
+          <div class="tt">Aurora <span class="badge live">live model</span></div>
+          <div class="ws"><span class="lbl">roster · overhead · ktlo · projects</span><i style="width:90%"></i><i style="width:70%"></i><i style="width:80%"></i></div>
+          <div class="tfit" style="color:var(--matchaDeep)">+0.4 pm</div>
+        </div>
+        <div class="tcard dim">
+          <div class="tt">Payments <span class="badge flat">typed-in</span></div>
+          <div class="ws flat"><span class="lbl">flat number</span><i style="width:55%"></i></div>
+          <div class="tfit" style="color:var(--matchaDeep)">+0.4 pm</div>
+        </div>
+        <div class="tcard dim">
+          <div class="tt">Growth <span class="badge flat">typed-in</span></div>
+          <div class="ws flat"><span class="lbl">flat number</span><i style="width:50%"></i></div>
+          <div class="tfit" style="color:var(--matchaDeep)">+0.2 pm</div>
+        </div>
+        <div class="tcard dim">
+          <div class="tt">Mobile <span class="badge flat">typed-in</span></div>
+          <div class="ws flat"><span class="lbl">flat number</span><i style="width:45%"></i></div>
+          <div class="tfit" style="color:var(--rust)">−0.3 pm</div>
+        </div>
+        <div class="tcard dim">
+          <div class="tt">Data <span class="badge flat">typed-in</span></div>
+          <div class="ws flat"><span class="lbl">flat number</span><i style="width:60%"></i></div>
+          <div class="tfit" style="color:var(--matchaDeep)">+2.1 pm</div>
+        </div>
+        <div class="tcard dim">
+          <div class="tt">Identity <span class="badge flat">typed-in</span></div>
+          <div class="ws flat"><span class="lbl">flat number</span><i style="width:48%"></i></div>
+          <div class="tfit" style="color:var(--rust)">−0.1 pm</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLOCK 2 -->
+  <section class="block">
+    <div class="bh"><span class="bn">2</span><h2>What “make every team editable” means</h2></div>
+    <p class="bsub">The only change: turn each typed-in number into its own live model — like Aurora already is. Then the roll-up is trustworthy top to bottom, because every number is computed, not guessed.</p>
+    <div class="ba">
+      <div class="state">
+        <div class="st">Today</div>
+        <h3>One live team</h3>
+        <p>Aurora computes; the other five are estimates. The group net is only as honest as those guesses.</p>
+        <div class="minis">
+          <span class="mini"><span class="pdot on">✓</span>Aurora</span>
+          <span class="mini"><span class="pdot off">~</span>Payments</span>
+          <span class="mini"><span class="pdot off">~</span>Growth</span>
+          <span class="mini"><span class="pdot off">~</span>Mobile</span>
+          <span class="mini"><span class="pdot off">~</span>Data</span>
+          <span class="mini"><span class="pdot off">~</span>Identity</span>
+        </div>
+      </div>
+      <div class="state prop">
+        <div class="st">Proposed</div>
+        <h3>Every team live</h3>
+        <p>Each EM keeps their own model; the director's roll-up sums real, computed numbers. Drill into any tile and you're in that team's real worksheet.</p>
+        <div class="minis">
+          <span class="mini"><span class="pdot on">✓</span>Aurora</span>
+          <span class="mini"><span class="pdot on">✓</span>Payments</span>
+          <span class="mini"><span class="pdot on">✓</span>Growth</span>
+          <span class="mini"><span class="pdot on">✓</span>Mobile</span>
+          <span class="mini"><span class="pdot on">✓</span>Data</span>
+          <span class="mini"><span class="pdot on">✓</span>Identity</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- BLOCK 3 -->
+  <section class="block">
+    <div class="bh"><span class="bn">3</span><h2>“Drilling in” is just zooming to one team</h2></div>
+    <p class="bsub">The director sees the grid, clicks a team, and lands in the exact Manager worksheet that team's EM uses. Any edit there rolls straight back up to the group total.</p>
+    <div class="steps">
+      <div class="step">
+        <div class="sl">Director · roll-up</div>
+        <h4>See every team</h4>
+        <div class="ogrid">
+          <div class="ocell"></div><div class="ocell hot"></div><div class="ocell"></div>
+          <div class="ocell"></div><div class="ocell"></div><div class="ocell"></div>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin:12px 0 0;line-height:1.4">Aurora highlighted — fit at a glance.</p>
+      </div>
+      <div class="arr">→</div>
+      <div class="step">
+        <div class="sl">Click a tile <span class="cursor">↖</span></div>
+        <h4>Drill into the team</h4>
+        <div class="ogrid">
+          <div class="ocell"></div><div class="ocell hot"></div><div class="ocell"></div>
+          <div class="ocell"></div><div class="ocell"></div><div class="ocell"></div>
+        </div>
+        <p style="font-size:11.5px;color:var(--muted);margin:12px 0 0;line-height:1.4">Open this team's full model.</p>
+      </div>
+      <div class="arr">→</div>
+      <div class="step mgr">
+        <div class="sl">Manager · that team</div>
+        <h4>Edit the real worksheet</h4>
+        <div class="row"><span class="av"></span><span class="bar" style="width:80%"></span></div>
+        <div class="row"><span class="av"></span><span class="bar" style="width:60%"></span></div>
+        <div class="sld"></div>
+        <div class="fit"><span class="k">Net capacity</span><span class="v">+0.4 pm</span></div>
+      </div>
+    </div>
+    <div class="rollback">↑ every edit rolls back up to <span>Group net</span></div>
+  </section>
+
+</div>
+</body>
+</html>
