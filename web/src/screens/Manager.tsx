@@ -86,7 +86,7 @@ export function Manager() {
                   <th className="font-mono text-[9px] font-bold tracking-[.1em] uppercase text-muted text-right px-2 py-3 border-b border-line-2 whitespace-nowrap">onb ×</th>
                   <th className="font-mono text-[9px] font-bold tracking-[.1em] uppercase text-muted text-right px-2 py-3 border-b border-line-2 whitespace-nowrap">Alloc</th>
                   <th className="font-mono text-[9px] font-bold tracking-[.1em] uppercase text-muted text-right px-2 py-3 border-b border-line-2 whitespace-nowrap">Eff. FTE</th>
-                  <th className="px-2 py-3 border-b border-line-2"></th>
+                  <th className="px-2 py-3 border-b border-line-2"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
@@ -297,7 +297,7 @@ export function Manager() {
                   <th className="font-mono text-[9px] font-bold tracking-[.1em] uppercase text-muted text-left px-2 py-3 border-b border-line-2">Project</th>
                   <th className="font-mono text-[9px] font-bold tracking-[.1em] uppercase text-muted text-left px-2 py-3 border-b border-line-2">Assigned to</th>
                   <th className="font-mono text-[9px] font-bold tracking-[.1em] uppercase text-muted text-right px-2 py-3 border-b border-line-2">Estimate</th>
-                  <th className="px-2 py-3 border-b border-line-2"></th>
+                  <th className="px-2 py-3 border-b border-line-2"><span className="sr-only">Actions</span></th>
                 </tr>
               </thead>
               <tbody>
