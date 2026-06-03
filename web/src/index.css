@@ -1,0 +1,27 @@
+@import "matcha-oat-design-system/tokens.css";
+@import "matcha-oat-design-system/fonts.css";
+@import "./styles/tokens.planner.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root { height: 100%; }
+body { background: var(--oat); color: var(--ink); font-family: var(--sans); }
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}
+
+:where(button, [role="button"], [role="tab"]) { min-height: 44px; }
+
+.ecp-editable:focus-visible {
+  outline: var(--focus);
+  outline-offset: var(--focus-offset);
+}
+
+/* Print: hide chrome, linearize (Export → PDF/print). */
+@media print {
+  .ecp-no-print { display: none !important; }
+  .ecp-rail { position: static !important; }
+}

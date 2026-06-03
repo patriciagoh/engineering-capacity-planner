@@ -1,0 +1,16 @@
+/* App aliases over matcha-oat tokens. No raw hex outside this file. */
+:root {
+  --hero-bg: var(--term-bg);
+  --hero-text: var(--term-text);
+
+  /* KTLO swatch roles → matcha-oat tokens (order matches defaultKtlo()) */
+  --swatch-support:   var(--matcha);
+  --swatch-incident:  var(--bad-border);
+  --swatch-interview: var(--yolk);
+  --swatch-onboard:   var(--yolk-deep);
+  --swatch-pto:       var(--muted);
+
+  --over-fill: var(--bad);
+  --good-fill: var(--matcha);
+  --reserved-fill: var(--yolk);
+}
