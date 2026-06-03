@@ -49,3 +49,39 @@ export const personLoads = (t: Team): PersonLoad[] =>
     const pct = pNet > 0 ? (assignedPM / pNet) * 100 : 0;
     return { name: e.name, assignedPM, personNet: pNet, pct, over: pct > 100 };
   });
+
+export type FitStatus = "ok" | "tight" | "over";
+
+export interface TeamFit {
+  name: string;
+  supply: number;   // netPM
+  demand: number;
+  fit: number;
+  status: FitStatus;
+}
+
+export const teamFit = (t: Team): TeamFit => {
+  const supply = netPM(t);
+  const d = demand(t);
+  const f = supply - d;
+  const status: FitStatus = f < 0 ? "over" : f < supply * 0.1 ? "tight" : "ok";
+  return { name: t.name, supply, demand: d, fit: f, status };
+};
+
+export const rollup = (teams: Team[]): { teams: TeamFit[]; groupNet: number } => {
+  const fits = teams.map(teamFit);
+  return { teams: fits, groupNet: fits.reduce((s, x) => s + x.fit, 0) };
+};
+
+export interface PmVerdict {
+  lands: boolean;
+  spare: number;
+  leftover: number; // when lands
+  gap: number;      // when short
+}
+
+export const pmVerdict = (t: Team, est: number): PmVerdict => {
+  const spare = fit(t);
+  const lands = est <= spare;
+  return { lands, spare, leftover: lands ? spare - est : 0, gap: lands ? 0 : est - spare };
+};

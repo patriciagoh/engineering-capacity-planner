@@ -76,3 +76,29 @@ describe("personLoads", () => {
     expect(personLoads(t).every((l) => Number.isFinite(l.pct))).toBe(true);
   });
 });
+
+import { rollup, pmVerdict } from "./selectors";
+
+describe("rollup and pmVerdict", () => {
+  const teams = [aurora, { ...aurora, name: "B", projects: [{ name: "X", est: 99, team: [0] }] }];
+
+  it("rollup returns per-team fit and group net = sum of fits", () => {
+    const r = rollup(teams);
+    expect(r.teams).toHaveLength(2);
+    expect(r.groupNet).toBeCloseTo(fit(teams[0]) + fit(teams[1]), 5);
+    expect(r.teams[0].status).toBe("ok");      // Aurora spare
+    expect(r.teams[1].status).toBe("over");     // B oversubscribed
+  });
+
+  it("pmVerdict: lands when est <= spare, with leftover", () => {
+    const v = pmVerdict(aurora, 0.2);
+    expect(v.lands).toBe(true);
+    expect(v.leftover).toBeCloseTo(fit(aurora) - 0.2, 5);
+  });
+
+  it("pmVerdict: short by est - spare when it does not fit", () => {
+    const v = pmVerdict(aurora, 5);
+    expect(v.lands).toBe(false);
+    expect(v.gap).toBeCloseTo(5 - fit(aurora), 5);
+  });
+});
