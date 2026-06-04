@@ -23,7 +23,7 @@ describe("AuthGate", () => {
     const port = new FakeAuthPort();
     render(<AuthGate port={port}><Protected /></AuthGate>);
     await screen.findByRole("button", { name: /sign in/i });
-    port.push({ userId: "u1", email: "a@b.co" });
+    act(() => port.push({ userId: "u1", email: "a@b.co" }));
     expect(await screen.findByTestId("protected")).toBeInTheDocument();
   });
 
@@ -31,7 +31,7 @@ describe("AuthGate", () => {
     const port = new FakeAuthPort({ userId: "u1", email: "a@b.co" });
     render(<AuthGate port={port}><Protected /></AuthGate>);
     await screen.findByTestId("protected");
-    port.push(null);
+    act(() => port.push(null));
     expect(await screen.findByRole("button", { name: /sign in/i })).toBeInTheDocument();
   });
 
