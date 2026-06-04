@@ -12,8 +12,8 @@ function ReadyGate({ children }: { children: ReactNode }) {
   return state.status === "ready" ? <>{children}</> : null;
 }
 
-// Renders `ui` inside a seeded store, returning only after hydration completes
-// so screens never see the empty loading frame (the App shell guard is a later task).
+// Mounts `ui` only after hydration completes, mirroring production where screens
+// render only inside the ready App `Shell` — so screens never see the empty loading frame.
 export async function renderSeeded(ui: ReactElement): Promise<RenderResult> {
   let result!: RenderResult;
   await act(async () => {

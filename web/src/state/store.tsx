@@ -136,11 +136,13 @@ const StoreContext = createContext<{ state: State; dispatch: Dispatch<Action> } 
 
 export function StoreProvider({ children, port }: { children: ReactNode; port?: StoragePort }) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
-  const portRef = useRef<StoragePort>(port ?? createStoragePort());
+  const portRef = useRef<StoragePort | null>(null);
+  if (portRef.current === null) portRef.current = port ?? createStoragePort();
 
   useEffect(() => {
     let cancelled = false;
-    portRef.current
+    const activePort = portRef.current!;
+    activePort
       .load()
       .then((loaded) => {
         if (cancelled) return;
