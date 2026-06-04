@@ -64,4 +64,37 @@ describe("sanitize", () => {
     expect(() => sanitize("garbage")).toThrow();
     expect(() => sanitize(42)).toThrow();
   });
+
+  it("throws the deliberate error on malformed nested data (not a raw TypeError)", () => {
+    expect(() => sanitize({ version: 1, cur: 0, teams: [null] })).toThrow(/refusing to load/);
+    expect(() => sanitize({ version: 1, cur: 0, teams: [{}] })).toThrow(/refusing to load/);
+    const t = makeSeedTeams()[0];
+    expect(() =>
+      sanitize({
+        version: 1,
+        cur: 0,
+        teams: [{ ...t, projects: [{ id: "p", name: "P", est: 1, team: 5 } as unknown] }],
+      }),
+    ).toThrow(/refusing to load/);
+  });
+
+  it("coerceAlloc snaps edge values to a valid Alloc", () => {
+    const t = makeSeedTeams()[0];
+    const mk = (alloc: unknown) =>
+      sanitize({ version: 1, cur: 0, teams: [{ ...t, roster: [{ ...t.roster[0], alloc } as unknown] }] })!.teams[0]
+        .roster[0].alloc;
+    expect(mk(0)).toBe(0.25);
+    expect(mk(NaN)).toBe(1);
+    expect(mk("x")).toBe(1);
+    expect([1, 0.75, 0.5, 0.25]).toContain(mk(0.4));
+  });
+
+  it("clamps non-finite est to 0", () => {
+    const t = makeSeedTeams()[0];
+    const mk = (est: unknown) =>
+      sanitize({ version: 1, cur: 0, teams: [{ ...t, projects: [{ id: "p", name: "P", est, team: [] } as unknown] }] })!
+        .teams[0].projects[0].est;
+    expect(mk(Infinity)).toBe(0);
+    expect(mk(NaN)).toBe(0);
+  });
 });

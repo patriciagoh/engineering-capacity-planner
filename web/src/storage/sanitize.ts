@@ -16,7 +16,8 @@ const clamp = (n: unknown, lo: number, hi: number, fallback: number): number => 
 
 const VALID_ALLOCS: Alloc[] = [1, 0.75, 0.5, 0.25];
 const coerceAlloc = (a: unknown): Alloc => {
-  const n = typeof a === "number" ? a : 1;
+  // Intentional fallbacks: non-number/non-finite -> 1.0; exact 0 -> nearest valid (0.25).
+  const n = typeof a === "number" && Number.isFinite(a) ? a : 1;
   return VALID_ALLOCS.reduce((best, v) => (Math.abs(v - n) < Math.abs(best - n) ? v : best), 1 as Alloc);
 };
 
@@ -35,6 +36,8 @@ const normTeam = (t: Team): Team => ({
   ktlo: t.ktlo.map((f) => ({ ...f, current: clamp(f.current, 0, 100, 0), ideal: clamp(f.ideal, 0, 100, 0) })),
 });
 
+// Validates top-level shape only (version + teams is array); nested malformation
+// is caught and rethrown as the deliberate load error by sanitize's try/catch below.
 function isRecognized(raw: unknown): raw is { version: number; cur: unknown; teams: Team[] } {
   return (
     typeof raw === "object" && raw !== null &&
@@ -48,7 +51,11 @@ export function sanitize(raw: unknown): PersistedState | null {
   if (!isRecognized(raw)) {
     throw new Error("Unrecognized stored document; refusing to load (would risk overwriting data).");
   }
-  const teams = raw.teams.map(normTeam);
-  const cur = teams.length === 0 ? 0 : clamp(raw.cur, 0, teams.length - 1, 0);
-  return { cur, teams };
+  try {
+    const teams = raw.teams.map(normTeam);
+    const cur = teams.length === 0 ? 0 : clamp(raw.cur, 0, teams.length - 1, 0);
+    return { cur, teams };
+  } catch (cause) {
+    throw new Error("Stored document failed to normalize; refusing to load (would risk overwriting data).", { cause });
+  }
 }
