@@ -1,7 +1,12 @@
 import type { Team } from "../engine/types";
 import { effFTE, engEff, grossPM, ktloFrac, netPM, demand, fit } from "../engine/selectors";
 
-const q = (v: unknown) => `"${String(v).replace(/"/g, '""')}"`;
+// Neutralize spreadsheet formula injection: a *string* cell beginning with one
+// of these is treated as a formula by Excel/Sheets/Numbers. Numbers (incl.
+// legitimate negatives like a -1.29 spare) are passed through untouched.
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+const guard = (v: unknown) => (typeof v === "string" && FORMULA_TRIGGER.test(v) ? `'${v}` : v);
+const q = (v: unknown) => `"${String(guard(v)).replace(/"/g, '""')}"`;
 const round = (n: number, d = 2) => Number(n.toFixed(d));
 
 export function results(t: Team) {
