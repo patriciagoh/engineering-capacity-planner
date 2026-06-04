@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { AuthGate } from "./AuthGate";
 import { FakeAuthPort } from "./fakeAuthPort";
 
@@ -33,6 +33,25 @@ describe("AuthGate", () => {
     await screen.findByTestId("protected");
     port.push(null);
     expect(await screen.findByRole("button", { name: /sign in/i })).toBeInTheDocument();
+  });
+
+  it("does not let a late getSession seed clobber an earlier auth-change event", async () => {
+    let resolveGetSession: (s: { userId: string; email: string | null } | null) => void = () => {};
+    let emit: (s: { userId: string; email: string | null } | null) => void = () => {};
+    const port = {
+      getSession: () => new Promise<{ userId: string; email: string | null } | null>((res) => { resolveGetSession = res; }),
+      signIn: async () => ({ error: null }),
+      signOut: async () => {},
+      onAuthChange: (cb: (s: { userId: string; email: string | null } | null) => void) => { emit = cb; return () => {}; },
+    };
+    render(<AuthGate port={port}><Protected /></AuthGate>);
+    // An authoritative event arrives BEFORE the initial getSession resolves:
+    act(() => emit({ userId: "u1", email: "a@b.co" }));
+    expect(await screen.findByTestId("protected")).toBeInTheDocument();
+    // The late getSession resolves with a STALE null snapshot — must NOT bounce to Login:
+    await act(async () => { resolveGetSession(null); await Promise.resolve(); });
+    expect(screen.queryByRole("button", { name: /sign in/i })).not.toBeInTheDocument();
+    expect(screen.getByTestId("protected")).toBeInTheDocument();
   });
 
   it("unsubscribes from auth changes on unmount", async () => {
