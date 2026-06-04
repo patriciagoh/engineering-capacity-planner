@@ -43,7 +43,7 @@ export function Director() {
     const fromFitBefore = fit(fromTeam);
     const toFitBefore = fit(toTeam);
 
-    dispatch({ type: "MOVE_ENGINEER", from: mvFrom, index: mvWho, to: mvTo });
+    dispatch({ type: "MOVE_ENGINEER", from: mvFrom, engineerId: person.id, to: mvTo });
 
     setBeforeFit({
       fromFit: fromFitBefore,

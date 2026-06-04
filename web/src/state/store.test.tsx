@@ -28,13 +28,17 @@ describe("reducer", () => {
     expect(remove.teams[2].projects[0].team).not.toContain(memberId);
   });
 
-  it("REMOVE_ENGINEER removes the engineer from the roster", () => {
-    // Task 3 will also strip the removed engineer's id from project team[].
-    // For now REMOVE_ENGINEER only mutates the roster (project teams unchanged).
-    const removedId = s0.teams[2].roster[0].id;
-    const s = reducer(s0, { type: "REMOVE_ENGINEER", team: 2, index: 0 });
-    expect(s.teams[2].roster).toHaveLength(4);
-    expect(s.teams[2].roster.find((r) => r.id === removedId)).toBeUndefined();
+  it("REMOVE_ENGINEER drops that engineer's id from project assignments only", () => {
+    let s = initialState();
+    const team = 2; // Aurora
+    const roster = s.teams[team].roster;
+    const removedId = roster[0].id;     // Alex (assigned to "Search revamp")
+    const keptId = roster[1].id;        // Sam   (also on "Search revamp")
+    s = reducer(s, { type: "REMOVE_ENGINEER", team, index: 0 });
+    const search = s.teams[team].projects.find((p) => p.name === "Search revamp")!;
+    expect(search.team).not.toContain(removedId);
+    expect(search.team).toContain(keptId);
+    expect(s.teams[team].roster.some((e) => e.id === removedId)).toBe(false);
   });
 
   it("ADD_ENGINEER appends a default engineer", () => {
@@ -51,11 +55,14 @@ describe("reducer", () => {
     expect(s.teams[2].ktlo[1].ideal).toBe(3);
   });
 
-  it("MOVE_ENGINEER moves a person between rosters", () => {
-    // Task 3 will also strip the moved engineer's id from their old team's projects.
-    const s = reducer(s0, { type: "MOVE_ENGINEER", from: 2, index: 2, to: 3 }); // Jordan Lee Aurora->Mobile
-    expect(s.teams[2].roster.find((r) => r.name === "Jordan Lee")).toBeUndefined();
-    expect(s.teams[3].roster.find((r) => r.name === "Jordan Lee")).toBeDefined();
+  it("MOVE_ENGINEER preserves the engineer's identity and removes them from the source team", () => {
+    let s = initialState();
+    const fromTeam = 2, toTeam = 0;
+    const movedId = s.teams[fromTeam].roster[2].id; // Jordan
+    s = reducer(s, { type: "MOVE_ENGINEER", from: fromTeam, engineerId: movedId, to: toTeam });
+    expect(s.teams[fromTeam].roster.some((e) => e.id === movedId)).toBe(false);
+    expect(s.teams[toTeam].roster.some((e) => e.id === movedId)).toBe(true);
+    expect(s.teams[fromTeam].projects.some((p) => p.team.includes(movedId))).toBe(false);
   });
 
   it("ADD_PROJECT / REMOVE_PROJECT / EDIT_PROJECT mutate demand rows", () => {

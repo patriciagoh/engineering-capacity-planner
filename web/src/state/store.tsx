@@ -28,7 +28,7 @@ export type Action =
   | { type: "EDIT_ENGINEER"; team: number; index: number; field: keyof Engineer; value: string | number }
   | { type: "ADD_ENGINEER"; team: number }
   | { type: "REMOVE_ENGINEER"; team: number; index: number }
-  | { type: "MOVE_ENGINEER"; from: number; index: number; to: number }
+  | { type: "MOVE_ENGINEER"; from: number; engineerId: string; to: number }
   | { type: "TOGGLE_ASSIGNMENT"; team: number; project: number; member: string }
   | { type: "SET_OVERHEAD"; team: number; index: number; current: number }
   | { type: "SET_OVERHEAD_IDEAL"; team: number; index: number; ideal: number }
@@ -58,25 +58,25 @@ export function reducer(state: State, action: Action): State {
       }));
     case "ADD_ENGINEER":
       return mapTeam(state, action.team, (t) => ({ ...t, roster: [...t.roster, newEngineer()] }));
-    case "REMOVE_ENGINEER":
-      // NOTE(Task 3): project assignment cleanup on removal is handled in Task 3,
-      // where p.team (now engineer ids) is filtered by id. For now leave p.team
-      // unchanged so this compiles against the new string[] type.
+    case "REMOVE_ENGINEER": {
+      const removedId = state.teams[action.team]?.roster[action.index]?.id;
+      if (!removedId) return state;
       return mapTeam(state, action.team, (t) => ({
         ...t,
         roster: t.roster.filter((_, i) => i !== action.index),
+        projects: t.projects.map((p) => ({ ...p, team: p.team.filter((id) => id !== removedId) })),
       }));
+    }
     case "MOVE_ENGINEER": {
       if (action.from === action.to) return state;
-      const person = state.teams[action.from].roster[action.index];
+      const person = state.teams[action.from]?.roster.find((e) => e.id === action.engineerId);
       if (!person) return state;
-      // NOTE(Task 3): stripping the moved engineer's id from project teams is
-      // handled in Task 3. For now leave p.team unchanged so this compiles.
       let next = mapTeam(state, action.from, (t) => ({
         ...t,
-        roster: t.roster.filter((_, i) => i !== action.index),
+        roster: t.roster.filter((e) => e.id !== action.engineerId),
+        projects: t.projects.map((p) => ({ ...p, team: p.team.filter((id) => id !== action.engineerId) })),
       }));
-      next = mapTeam(next, action.to, (t) => ({ ...t, roster: [...t.roster, { ...person }] }));
+      next = mapTeam(next, action.to, (t) => ({ ...t, roster: [...t.roster, person] }));
       return next;
     }
     case "TOGGLE_ASSIGNMENT":
