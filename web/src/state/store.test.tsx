@@ -68,6 +68,16 @@ describe("reducer", () => {
     expect(s.teams[fromTeam].projects.some((p) => p.team.includes(movedId))).toBe(false);
   });
 
+  it("MOVE_ENGINEER is a no-op when from === to", () => {
+    const s0 = seeded();
+    const id = s0.teams[2].roster[0].id;
+    expect(reducer(s0, { type: "MOVE_ENGINEER", from: 2, engineerId: id, to: 2 })).toBe(s0);
+  });
+  it("MOVE_ENGINEER is a no-op when engineerId is unknown", () => {
+    const s0 = seeded();
+    expect(reducer(s0, { type: "MOVE_ENGINEER", from: 2, engineerId: "does-not-exist", to: 0 })).toBe(s0);
+  });
+
   it("ADD_PROJECT / REMOVE_PROJECT / EDIT_PROJECT mutate demand rows", () => {
     let s = reducer(s0, { type: "ADD_PROJECT", team: 2 });
     expect(s.teams[2].projects).toHaveLength(4);

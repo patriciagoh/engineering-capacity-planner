@@ -33,7 +33,7 @@ export type Action =
   | { type: "SET_VIEW"; view: View }
   | { type: "OPEN_TEAM"; team: number }
   | { type: "SET_WINDOW"; team: number; window: Window }
-  | { type: "EDIT_ENGINEER"; team: number; index: number; field: keyof Engineer; value: string | number }
+  | { type: "EDIT_ENGINEER"; team: number; index: number; field: Exclude<keyof Engineer, "id">; value: string | number }
   | { type: "ADD_ENGINEER"; team: number }
   | { type: "REMOVE_ENGINEER"; team: number; index: number }
   | { type: "MOVE_ENGINEER"; from: number; engineerId: string; to: number }

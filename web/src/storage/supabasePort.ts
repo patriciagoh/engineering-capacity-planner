@@ -29,7 +29,7 @@ class SupabaseRowStore implements RowStore {
     const c = await getClient();
     const { data: auth } = await c.auth.getUser();
     if (!auth.user) throw new Error("Not authenticated");
-    const { error } = await c.from("app_data").upsert({ owner: auth.user.id, data, updated_at: new Date().toISOString() });
+    const { error } = await c.from("app_data").upsert({ owner: auth.user.id, data, updated_at: new Date().toISOString() }, { onConflict: "owner" });
     if (error) throw error;
   }
 }

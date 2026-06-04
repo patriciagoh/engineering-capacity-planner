@@ -28,4 +28,14 @@ describe("seed org", () => {
     expect(ids.every((id) => typeof id === "string" && id.length > 0)).toBe(true);
     expect(new Set(ids).size).toBe(ids.length);
   });
+  it("every project assignment references an engineer in its own team's roster", () => {
+    for (const t of makeSeedTeams()) {
+      const rosterIds = new Set(t.roster.map((e) => e.id));
+      for (const p of t.projects) {
+        for (const id of p.team) {
+          expect(rosterIds.has(id)).toBe(true);
+        }
+      }
+    }
+  });
 });
