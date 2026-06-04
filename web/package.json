@@ -13,6 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@supabase/supabase-js": "2.107.0",
     "lucide-react": "0.456.0",
     "matcha-oat-design-system": "github:patriciagoh/matcha-oat-design-system#ff314a25419b79e0f3e3ad31155bdd48e670a898",
     "react": "19.2.7",
