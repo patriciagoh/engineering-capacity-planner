@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { reducer, initialState } from "./store";
+import { reducer } from "./store";
 import type { State } from "./store";
+import { makeSeedTeams, CUR } from "../data/seed";
 
-const s0: State = initialState();
+const seeded = (): State => ({ teams: makeSeedTeams(), cur: CUR, view: "manager", status: "ready", saveError: false });
+
+const s0: State = seeded();
 
 describe("reducer", () => {
   it("SET_VIEW switches the active lens", () => {
@@ -20,18 +23,25 @@ describe("reducer", () => {
     expect(s.teams[2].roster[0].level).toBe("Staff");
   });
 
-  it("TOGGLE_ASSIGNMENT adds/removes a member from a project's team[]", () => {
-    const add = reducer(s0, { type: "TOGGLE_ASSIGNMENT", team: 2, project: 0, member: 4 });
-    expect(add.teams[2].projects[0].team).toContain(4);
-    const remove = reducer(add, { type: "TOGGLE_ASSIGNMENT", team: 2, project: 0, member: 4 });
-    expect(remove.teams[2].projects[0].team).not.toContain(4);
+  it("TOGGLE_ASSIGNMENT adds/removes a member id from a project's team[]", () => {
+    const memberId = s0.teams[2].roster[4].id;
+    const add = reducer(s0, { type: "TOGGLE_ASSIGNMENT", team: 2, project: 0, member: memberId });
+    expect(add.teams[2].projects[0].team).toContain(memberId);
+    const remove = reducer(add, { type: "TOGGLE_ASSIGNMENT", team: 2, project: 0, member: memberId });
+    expect(remove.teams[2].projects[0].team).not.toContain(memberId);
   });
 
-  it("REMOVE_ENGINEER strips the index from every project's team[] and reindexes", () => {
-    // Aurora: Search revamp = [0,1]; removing idx 0 should leave [0] (old idx1 -> 0)
-    const s = reducer(s0, { type: "REMOVE_ENGINEER", team: 2, index: 0 });
-    expect(s.teams[2].roster).toHaveLength(4);
-    expect(s.teams[2].projects[0].team).toEqual([0]);
+  it("REMOVE_ENGINEER drops that engineer's id from project assignments only", () => {
+    let s = seeded();
+    const team = 2; // Aurora
+    const roster = s.teams[team].roster;
+    const removedId = roster[0].id;     // Alex (assigned to "Search revamp")
+    const keptId = roster[1].id;        // Sam   (also on "Search revamp")
+    s = reducer(s, { type: "REMOVE_ENGINEER", team, index: 0 });
+    const search = s.teams[team].projects.find((p) => p.name === "Search revamp")!;
+    expect(search.team).not.toContain(removedId);
+    expect(search.team).toContain(keptId);
+    expect(s.teams[team].roster.some((e) => e.id === removedId)).toBe(false);
   });
 
   it("ADD_ENGINEER appends a default engineer", () => {
@@ -48,12 +58,24 @@ describe("reducer", () => {
     expect(s.teams[2].ktlo[1].ideal).toBe(3);
   });
 
-  it("MOVE_ENGINEER moves a person between rosters and strips their old assignments", () => {
-    const s = reducer(s0, { type: "MOVE_ENGINEER", from: 2, index: 2, to: 3 }); // Jordan Lee Aurora->Mobile
-    expect(s.teams[2].roster.find((r) => r.name === "Jordan Lee")).toBeUndefined();
-    expect(s.teams[3].roster.find((r) => r.name === "Jordan Lee")).toBeDefined();
-    // Billing migration was [2] (Jordan); after removal that project has no members
-    expect(s.teams[2].projects[1].team).toEqual([]);
+  it("MOVE_ENGINEER preserves the engineer's identity and removes them from the source team", () => {
+    let s = seeded();
+    const fromTeam = 2, toTeam = 0;
+    const movedId = s.teams[fromTeam].roster[2].id; // Jordan
+    s = reducer(s, { type: "MOVE_ENGINEER", from: fromTeam, engineerId: movedId, to: toTeam });
+    expect(s.teams[fromTeam].roster.some((e) => e.id === movedId)).toBe(false);
+    expect(s.teams[toTeam].roster.some((e) => e.id === movedId)).toBe(true);
+    expect(s.teams[fromTeam].projects.some((p) => p.team.includes(movedId))).toBe(false);
+  });
+
+  it("MOVE_ENGINEER is a no-op when from === to", () => {
+    const s0 = seeded();
+    const id = s0.teams[2].roster[0].id;
+    expect(reducer(s0, { type: "MOVE_ENGINEER", from: 2, engineerId: id, to: 2 })).toBe(s0);
+  });
+  it("MOVE_ENGINEER is a no-op when engineerId is unknown", () => {
+    const s0 = seeded();
+    expect(reducer(s0, { type: "MOVE_ENGINEER", from: 2, engineerId: "does-not-exist", to: 0 })).toBe(s0);
   });
 
   it("ADD_PROJECT / REMOVE_PROJECT / EDIT_PROJECT mutate demand rows", () => {

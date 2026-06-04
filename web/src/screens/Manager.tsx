@@ -91,7 +91,7 @@ export function Manager() {
               </thead>
               <tbody>
                 {team.roster.map((eng: Engineer, i: number) => (
-                  <tr key={i} className="border-b border-line last:border-0">
+                  <tr key={eng.id} className="border-b border-line last:border-0">
                     <td className="px-2 py-2 align-middle">
                       <EditableField
                         value={eng.name}
@@ -302,7 +302,7 @@ export function Manager() {
               </thead>
               <tbody>
                 {team.projects.map((project, pi) => (
-                  <tr key={pi} className="border-b border-line last:border-0">
+                  <tr key={project.id} className="border-b border-line last:border-0">
                     <td className="px-2 py-2 align-middle">
                       <EditableField
                         value={project.name}
@@ -313,9 +313,9 @@ export function Manager() {
                     </td>
                     <td className="px-2 py-2 align-middle">
                       <Pills
-                        items={team.roster.map((e) => e.name)}
+                        items={team.roster.map((e) => ({ id: e.id, label: e.name }))}
                         selected={project.team}
-                        onToggle={(mi) => dispatch({ type: "TOGGLE_ASSIGNMENT", team: ti, project: pi, member: mi })}
+                        onToggle={(id) => dispatch({ type: "TOGGLE_ASSIGNMENT", team: ti, project: pi, member: id })}
                       />
                     </td>
                     <td className="px-2 py-2 align-middle text-right">
@@ -368,7 +368,7 @@ export function Manager() {
           </header>
           <div className="px-5 pt-2 pb-5">
             {loads.map((load) => (
-              <LoadBar key={load.name} name={load.name} pct={load.pct} over={load.over} />
+              <LoadBar key={load.id} name={load.name} pct={load.pct} over={load.over} />
             ))}
             {loads.some((l) => l.over) && (
               <p className="mt-3 text-xs text-bad">

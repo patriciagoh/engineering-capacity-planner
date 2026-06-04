@@ -1,19 +1,19 @@
 import { describe, it, expect } from "vitest";
-import { render, screen, within, fireEvent } from "@testing-library/react";
+import { screen, within, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { StoreProvider } from "../state/store";
 import { Manager } from "./Manager";
+import { renderSeeded } from "../test/renderSeeded";
 
-const renderManager = () => render(<StoreProvider><Manager /></StoreProvider>);
+const renderManager = () => renderSeeded(<Manager />);
 
 describe("Manager", () => {
-  it("shows Aurora's net capacity headline (2.7)", () => {
-    renderManager();
+  it("shows Aurora's net capacity headline (2.7)", async () => {
+    await renderManager();
     expect(screen.getByText("2.7")).toBeInTheDocument();
   });
 
-  it("recomputes the net-capacity headline when a KTLO slider changes", () => {
-    renderManager();
+  it("recomputes the net-capacity headline when a KTLO slider changes", async () => {
+    await renderManager();
     expect(screen.getByText("2.7")).toBeInTheDocument();
     const support = screen.getByLabelText(/Support tickets reserved/i);
     // Raise support-tickets reservation 15% -> 30%: KTLO rises 50% -> 65%, so net
@@ -25,14 +25,14 @@ describe("Manager", () => {
   });
 
   it("adds an engineer when '+ Add engineer' is clicked", async () => {
-    renderManager();
+    await renderManager();
     const before = screen.getAllByLabelText(/Engineer name/i).length;
     await userEvent.click(screen.getByRole("button", { name: /add engineer/i }));
     expect(screen.getAllByLabelText(/Engineer name/i).length).toBe(before + 1);
   });
 
   it("toggling a project assignment chip updates assignment state", async () => {
-    renderManager();
+    await renderManager();
     const projects = screen.getByRole("region", { name: /projects/i });
     const chip = within(projects).getAllByRole("button", { pressed: false })[0];
     await userEvent.click(chip);

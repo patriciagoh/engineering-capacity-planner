@@ -13,17 +13,17 @@ describe("exporters", () => {
     expect(csv).toContain("Net capacity");
   });
   it("toCSV escapes embedded quotes", () => {
-    const t = { ...aurora, projects: [{ name: 'A "quoted" name', est: 1, team: [] }] };
+    const t = { ...aurora, projects: [{ id: "p1", name: 'A "quoted" name', est: 1, team: [] }] };
     expect(toCSV(t)).toContain('"A ""quoted"" name"');
   });
   it("toCSV neutralizes spreadsheet formula triggers in user text", () => {
     const t = {
       ...aurora,
       projects: [
-        { name: '=HYPERLINK("https://evil.example")', est: 1, team: [] },
-        { name: "+1+2", est: 1, team: [] },
-        { name: "-cmd", est: 1, team: [] },
-        { name: "@SUM(A1)", est: 1, team: [] },
+        { id: "p1", name: '=HYPERLINK("https://evil.example")', est: 1, team: [] },
+        { id: "p2", name: "+1+2", est: 1, team: [] },
+        { id: "p3", name: "-cmd", est: 1, team: [] },
+        { id: "p4", name: "@SUM(A1)", est: 1, team: [] },
       ],
     };
     const csv = toCSV(t);
@@ -33,7 +33,7 @@ describe("exporters", () => {
     expect(csv).toContain('"\'@SUM(A1)"');
   });
   it("toCSV does not mangle legitimate negative numeric cells", () => {
-    const t = { ...aurora, projects: [{ name: "Refund", est: -3, team: [] }] };
+    const t = { ...aurora, projects: [{ id: "p1", name: "Refund", est: -3, team: [] }] };
     const csv = toCSV(t);
     expect(csv).toContain('"-3"');
     expect(csv).not.toContain('"\'-3"');

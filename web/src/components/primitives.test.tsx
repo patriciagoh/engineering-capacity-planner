@@ -5,6 +5,7 @@ import { SegmentedToggle } from "./SegmentedToggle";
 import { FitBar } from "./FitBar";
 import { LoadBar } from "./LoadBar";
 import { StatRow } from "./StatRow";
+import { Pills } from "./Pills";
 import { vi } from "vitest";
 
 describe("primitives", () => {
@@ -26,6 +27,13 @@ describe("primitives", () => {
     render(<LoadBar name="Alex" pct={120} over />);
     expect(screen.getByText("Alex")).toBeInTheDocument();
     expect(screen.getByText(/120%/)).toBeInTheDocument();
+  });
+
+  it("Pills reflects selected ids via aria-pressed", () => {
+    const items = [ { id: "x", label: "Xena" }, { id: "y", label: "Yan" } ];
+    render(<Pills items={items} selected={["x"]} onToggle={() => {}} />);
+    expect(screen.getByRole("button", { name: "Xena" })).toHaveAttribute("aria-pressed", "true");
+    expect(screen.getByRole("button", { name: "Yan" })).toHaveAttribute("aria-pressed", "false");
   });
 
   it("StatRow renders a term and value", () => {

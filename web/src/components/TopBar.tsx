@@ -20,7 +20,12 @@ export function TopBar() {
           value={team.window}
           onChange={(w: Window) => dispatch({ type: "SET_WINDOW", team: state.cur, window: w })}
         />
-        <ExportMenu />
+        <div className="flex items-center gap-3">
+          {state.saveError && (
+            <span role="status" className="text-xs text-muted">Couldn’t save — retrying on next edit</span>
+          )}
+          <ExportMenu />
+        </div>
       </div>
       <div className="mx-auto max-w-[1180px] px-6 pb-3"><ViewSwitcher /></div>
     </header>

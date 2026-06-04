@@ -12,6 +12,7 @@ export type Alloc = 1 | 0.75 | 0.5 | 0.25;
 export type Window = "month" | "quarter";
 
 export interface Engineer {
+  id: string;
   name: string;
   tenure: Tenure;
   level: Level;
@@ -34,12 +35,14 @@ export interface KtloFactor {
 }
 
 export interface Project {
+  id: string;
   name: string;
   est: number;       // person-months
-  team: number[];    // indices into the team roster
+  team: string[];    // engineer ids assigned to this project
 }
 
 export interface Team {
+  id: string;
   name: string;
   roster: Engineer[];
   overhead: OverheadFactor[];
