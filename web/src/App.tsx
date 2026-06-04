@@ -1,4 +1,7 @@
+import { useMemo } from "react";
 import { StoreProvider, useStore } from "./state/store";
+import { createAuthPort } from "./auth/createAuthPort";
+import { AuthGate } from "./auth/AuthGate";
 import { TopBar } from "./components/TopBar";
 import { Manager } from "./screens/Manager";
 import { Director } from "./screens/Director";
@@ -30,9 +33,12 @@ export function Shell() {
 }
 
 export function App() {
-  return (
+  // Created once; null in the local/demo build (no auth), a deferred port in the supabase build.
+  const authPort = useMemo(() => createAuthPort(), []);
+  const dataApp = (
     <StoreProvider>
       <Shell />
     </StoreProvider>
   );
+  return authPort ? <AuthGate port={authPort}>{dataApp}</AuthGate> : dataApp;
 }

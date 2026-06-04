@@ -7,6 +7,7 @@ import { makeSeedTeams } from "../data/seed";
 import { ViewSwitcher } from "./ViewSwitcher";
 import { TopBar } from "./TopBar";
 import { renderSeeded } from "../test/renderSeeded";
+import { AuthProvider } from "../auth/AuthContext";
 
 function ViewProbe() {
   const { state } = useStore();
@@ -52,4 +53,17 @@ describe("TopBar save-error indicator", () => {
       vi.useRealTimers();
     }
   });
+});
+
+it("shows the signed-in email and a working Sign out when authenticated", async () => {
+  const signOut = vi.fn();
+  await renderSeeded(
+    <AuthProvider value={{ session: { userId: "u1", email: "me@example.com" }, signOut }}>
+      <TopBar />
+    </AuthProvider>,
+  );
+  expect(screen.getByText("me@example.com")).toBeInTheDocument();
+  const btn = screen.getByRole("button", { name: /sign out/i });
+  btn.click();
+  expect(signOut).toHaveBeenCalled();
 });

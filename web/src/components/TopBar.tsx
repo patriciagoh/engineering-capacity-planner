@@ -1,4 +1,5 @@
 import { useStore } from "../state/store";
+import { useAuth } from "../auth/AuthContext";
 import { SegmentedToggle } from "./SegmentedToggle";
 import { ExportMenu } from "./ExportMenu";
 import { ViewSwitcher } from "./ViewSwitcher";
@@ -6,6 +7,7 @@ import type { Window } from "../engine/types";
 
 export function TopBar() {
   const { state, dispatch } = useStore();
+  const auth = useAuth();
   const team = state.teams[state.cur];
   return (
     <header className="sticky top-0 z-10 bg-oat/95 backdrop-blur border-b border-line">
@@ -23,6 +25,12 @@ export function TopBar() {
         <div className="flex items-center gap-3">
           {state.saveError && (
             <span role="status" className="text-xs text-muted">Couldn’t save — retrying on next edit</span>
+          )}
+          {auth && (
+            <div className="flex items-center gap-2">
+              <span className="text-xs text-muted">{auth.session.email}</span>
+              <button onClick={auth.signOut} className="text-xs text-ink underline">Sign out</button>
+            </div>
           )}
           <ExportMenu />
         </div>
