@@ -91,7 +91,7 @@ export function Manager() {
               </thead>
               <tbody>
                 {team.roster.map((eng: Engineer, i: number) => (
-                  <tr key={i} className="border-b border-line last:border-0">
+                  <tr key={eng.id} className="border-b border-line last:border-0">
                     <td className="px-2 py-2 align-middle">
                       <EditableField
                         value={eng.name}
@@ -302,7 +302,7 @@ export function Manager() {
               </thead>
               <tbody>
                 {team.projects.map((project, pi) => (
-                  <tr key={pi} className="border-b border-line last:border-0">
+                  <tr key={project.id} className="border-b border-line last:border-0">
                     <td className="px-2 py-2 align-middle">
                       <EditableField
                         value={project.name}

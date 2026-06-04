@@ -161,8 +161,8 @@ export function Director() {
 
             {/* Roster list */}
             <div className="flex flex-col gap-1.5 mb-1">
-              {team.roster.map((eng, i) => (
-                <div key={i} className="flex justify-between text-sm text-ink-2 border-b border-line pb-1.5 last:border-0">
+              {team.roster.map((eng) => (
+                <div key={eng.id} className="flex justify-between text-sm text-ink-2 border-b border-line pb-1.5 last:border-0">
                   <span>{eng.name}</span>
                   <span className="font-mono font-bold">{eng.level} · {fmt(engEff(eng), 2)} FTE</span>
                 </div>
