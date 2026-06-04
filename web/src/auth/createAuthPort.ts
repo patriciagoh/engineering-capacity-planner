@@ -17,9 +17,13 @@ function makeDeferredAuthPort(): AuthPort {
     onAuthChange: (cb) => {
       let unsub = () => {};
       let cancelled = false;
-      get().then((p) => {
-        if (!cancelled) unsub = p.onAuthChange(cb);
-      });
+      get()
+        .then((p) => {
+          if (!cancelled) unsub = p.onAuthChange(cb);
+        })
+        .catch(() => {
+          /* import/env failure: no-op; gate's getSession path handles it */
+        });
       return () => {
         cancelled = true;
         unsub();

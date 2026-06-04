@@ -29,11 +29,16 @@ class SupabaseAuthAdapter implements AuthPort {
   onAuthChange(cb: (s: AuthSession | null) => void): () => void {
     let unsub = () => {};
     let cancelled = false;
-    getClient().then((c) => {
-      if (cancelled) return;
-      const { data } = c.auth.onAuthStateChange((_event, session) => cb(toSession(session as RawSession)));
-      unsub = () => data.subscription.unsubscribe();
-    });
+    getClient()
+      .then((c) => {
+        if (cancelled) return;
+        const { data } = c.auth.onAuthStateChange((_event, session) => cb(toSession(session as RawSession)));
+        unsub = () => data.subscription.unsubscribe();
+      })
+      .catch(() => {
+        // Env/SDK-load failure: can't subscribe. The AuthGate's getSession path
+        // surfaces the unauthenticated state; avoid an unhandled rejection here.
+      });
     return () => {
       cancelled = true;
       unsub();
