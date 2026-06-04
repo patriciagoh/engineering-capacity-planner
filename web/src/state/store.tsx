@@ -29,7 +29,7 @@ export type Action =
   | { type: "ADD_ENGINEER"; team: number }
   | { type: "REMOVE_ENGINEER"; team: number; index: number }
   | { type: "MOVE_ENGINEER"; from: number; index: number; to: number }
-  | { type: "TOGGLE_ASSIGNMENT"; team: number; project: number; member: number }
+  | { type: "TOGGLE_ASSIGNMENT"; team: number; project: number; member: string }
   | { type: "SET_OVERHEAD"; team: number; index: number; current: number }
   | { type: "SET_OVERHEAD_IDEAL"; team: number; index: number; ideal: number }
   | { type: "SET_KTLO"; team: number; index: number; current: number }
@@ -37,10 +37,6 @@ export type Action =
   | { type: "ADD_PROJECT"; team: number }
   | { type: "REMOVE_PROJECT"; team: number; index: number }
   | { type: "EDIT_PROJECT"; team: number; index: number; field: "name" | "est"; value: string | number };
-
-// Drop a removed roster index from a project team[], reindexing higher indices down by one.
-const reindexAfterRemoval = (team: number[], removed: number): number[] =>
-  team.filter((i) => i !== removed).map((i) => (i > removed ? i - 1 : i));
 
 const mapTeam = (state: State, idx: number, fn: (t: Team) => Team): State => ({
   ...state,
@@ -63,19 +59,22 @@ export function reducer(state: State, action: Action): State {
     case "ADD_ENGINEER":
       return mapTeam(state, action.team, (t) => ({ ...t, roster: [...t.roster, newEngineer()] }));
     case "REMOVE_ENGINEER":
+      // NOTE(Task 3): project assignment cleanup on removal is handled in Task 3,
+      // where p.team (now engineer ids) is filtered by id. For now leave p.team
+      // unchanged so this compiles against the new string[] type.
       return mapTeam(state, action.team, (t) => ({
         ...t,
         roster: t.roster.filter((_, i) => i !== action.index),
-        projects: t.projects.map((p) => ({ ...p, team: reindexAfterRemoval(p.team, action.index) })),
       }));
     case "MOVE_ENGINEER": {
       if (action.from === action.to) return state;
       const person = state.teams[action.from].roster[action.index];
       if (!person) return state;
+      // NOTE(Task 3): stripping the moved engineer's id from project teams is
+      // handled in Task 3. For now leave p.team unchanged so this compiles.
       let next = mapTeam(state, action.from, (t) => ({
         ...t,
         roster: t.roster.filter((_, i) => i !== action.index),
-        projects: t.projects.map((p) => ({ ...p, team: reindexAfterRemoval(p.team, action.index) })),
       }));
       next = mapTeam(next, action.to, (t) => ({ ...t, roster: [...t.roster, { ...person }] }));
       return next;

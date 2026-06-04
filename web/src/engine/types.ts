@@ -38,7 +38,7 @@ export interface Project {
   id: string;
   name: string;
   est: number;       // person-months
-  team: number[];    // indices into the team roster (becomes string[] of engineer ids later)
+  team: string[];    // engineer ids assigned to this project
 }
 
 export interface Team {

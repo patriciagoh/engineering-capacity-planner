@@ -313,9 +313,9 @@ export function Manager() {
                     </td>
                     <td className="px-2 py-2 align-middle">
                       <Pills
-                        items={team.roster.map((e) => e.name)}
+                        items={team.roster.map((e) => ({ id: e.id, label: e.name }))}
                         selected={project.team}
-                        onToggle={(mi) => dispatch({ type: "TOGGLE_ASSIGNMENT", team: ti, project: pi, member: mi })}
+                        onToggle={(id) => dispatch({ type: "TOGGLE_ASSIGNMENT", team: ti, project: pi, member: id })}
                       />
                     </td>
                     <td className="px-2 py-2 align-middle text-right">
@@ -368,7 +368,7 @@ export function Manager() {
           </header>
           <div className="px-5 pt-2 pb-5">
             {loads.map((load) => (
-              <LoadBar key={load.name} name={load.name} pct={load.pct} over={load.over} />
+              <LoadBar key={load.id} name={load.name} pct={load.pct} over={load.over} />
             ))}
             {loads.some((l) => l.over) && (
               <p className="mt-3 text-xs text-bad">

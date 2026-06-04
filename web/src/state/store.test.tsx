@@ -20,18 +20,21 @@ describe("reducer", () => {
     expect(s.teams[2].roster[0].level).toBe("Staff");
   });
 
-  it("TOGGLE_ASSIGNMENT adds/removes a member from a project's team[]", () => {
-    const add = reducer(s0, { type: "TOGGLE_ASSIGNMENT", team: 2, project: 0, member: 4 });
-    expect(add.teams[2].projects[0].team).toContain(4);
-    const remove = reducer(add, { type: "TOGGLE_ASSIGNMENT", team: 2, project: 0, member: 4 });
-    expect(remove.teams[2].projects[0].team).not.toContain(4);
+  it("TOGGLE_ASSIGNMENT adds/removes a member id from a project's team[]", () => {
+    const memberId = s0.teams[2].roster[4].id;
+    const add = reducer(s0, { type: "TOGGLE_ASSIGNMENT", team: 2, project: 0, member: memberId });
+    expect(add.teams[2].projects[0].team).toContain(memberId);
+    const remove = reducer(add, { type: "TOGGLE_ASSIGNMENT", team: 2, project: 0, member: memberId });
+    expect(remove.teams[2].projects[0].team).not.toContain(memberId);
   });
 
-  it("REMOVE_ENGINEER strips the index from every project's team[] and reindexes", () => {
-    // Aurora: Search revamp = [0,1]; removing idx 0 should leave [0] (old idx1 -> 0)
+  it("REMOVE_ENGINEER removes the engineer from the roster", () => {
+    // Task 3 will also strip the removed engineer's id from project team[].
+    // For now REMOVE_ENGINEER only mutates the roster (project teams unchanged).
+    const removedId = s0.teams[2].roster[0].id;
     const s = reducer(s0, { type: "REMOVE_ENGINEER", team: 2, index: 0 });
     expect(s.teams[2].roster).toHaveLength(4);
-    expect(s.teams[2].projects[0].team).toEqual([0]);
+    expect(s.teams[2].roster.find((r) => r.id === removedId)).toBeUndefined();
   });
 
   it("ADD_ENGINEER appends a default engineer", () => {
@@ -48,12 +51,11 @@ describe("reducer", () => {
     expect(s.teams[2].ktlo[1].ideal).toBe(3);
   });
 
-  it("MOVE_ENGINEER moves a person between rosters and strips their old assignments", () => {
+  it("MOVE_ENGINEER moves a person between rosters", () => {
+    // Task 3 will also strip the moved engineer's id from their old team's projects.
     const s = reducer(s0, { type: "MOVE_ENGINEER", from: 2, index: 2, to: 3 }); // Jordan Lee Aurora->Mobile
     expect(s.teams[2].roster.find((r) => r.name === "Jordan Lee")).toBeUndefined();
     expect(s.teams[3].roster.find((r) => r.name === "Jordan Lee")).toBeDefined();
-    // Billing migration was [2] (Jordan); after removal that project has no members
-    expect(s.teams[2].projects[1].team).toEqual([]);
   });
 
   it("ADD_PROJECT / REMOVE_PROJECT / EDIT_PROJECT mutate demand rows", () => {

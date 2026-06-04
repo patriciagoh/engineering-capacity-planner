@@ -29,6 +29,7 @@ export const headcount = (roster: Engineer[]): number =>
   roster.reduce((s, e) => s + e.alloc, 0);
 
 export interface PersonLoad {
+  id: string;
   name: string;
   assignedPM: number;
   personNet: number;
@@ -40,14 +41,14 @@ export const personNet = (e: Engineer, t: Team): number =>
   engEff(e) * (weeksFor(t.window) / 4) * productive(t.overhead) * (1 - ktloFrac(t.ktlo));
 
 export const personLoads = (t: Team): PersonLoad[] =>
-  t.roster.map((e, i) => {
+  t.roster.map((e) => {
     const assignedPM = t.projects.reduce(
-      (s, p) => s + (p.team.includes(i) ? p.est / p.team.length : 0),
+      (s, p) => s + (p.team.includes(e.id) ? p.est / p.team.length : 0),
       0,
     );
     const pNet = personNet(e, t);
     const pct = pNet > 0 ? (assignedPM / pNet) * 100 : 0;
-    return { name: e.name, assignedPM, personNet: pNet, pct, over: pct > 100 };
+    return { id: e.id, name: e.name, assignedPM, personNet: pNet, pct, over: pct > 100 };
   });
 
 export type FitStatus = "ok" | "tight" | "over";
