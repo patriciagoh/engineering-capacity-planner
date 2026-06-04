@@ -1,8 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { reducer, initialState } from "./store";
+import { reducer } from "./store";
 import type { State } from "./store";
+import { makeSeedTeams, CUR } from "../data/seed";
 
-const s0: State = initialState();
+const seeded = (): State => ({ teams: makeSeedTeams(), cur: CUR, view: "manager", status: "ready", saveError: false });
+
+const s0: State = seeded();
 
 describe("reducer", () => {
   it("SET_VIEW switches the active lens", () => {
@@ -29,7 +32,7 @@ describe("reducer", () => {
   });
 
   it("REMOVE_ENGINEER drops that engineer's id from project assignments only", () => {
-    let s = initialState();
+    let s = seeded();
     const team = 2; // Aurora
     const roster = s.teams[team].roster;
     const removedId = roster[0].id;     // Alex (assigned to "Search revamp")
@@ -56,7 +59,7 @@ describe("reducer", () => {
   });
 
   it("MOVE_ENGINEER preserves the engineer's identity and removes them from the source team", () => {
-    let s = initialState();
+    let s = seeded();
     const fromTeam = 2, toTeam = 0;
     const movedId = s.teams[fromTeam].roster[2].id; // Jordan
     s = reducer(s, { type: "MOVE_ENGINEER", from: fromTeam, engineerId: movedId, to: toTeam });

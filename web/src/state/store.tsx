@@ -2,26 +2,34 @@
    This module intentionally co-locates the store: the reducer, action types,
    the StoreProvider component, and the useStore hook live together. The rule
    only concerns HMR fast-refresh, not correctness. */
-import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from "react";
+import { createContext, useContext, useReducer, useEffect, useRef, type Dispatch, type ReactNode } from "react";
 import type { Team, Engineer, Window } from "../engine/types";
-import { makeSeedTeams, CUR } from "../data/seed";
 import { newId } from "../engine/ids";
+import { createStoragePort } from "../storage/createStoragePort";
+import type { StoragePort } from "../storage/types";
 
 export type View = "manager" | "director" | "pm";
+
+export type LoadStatus = "loading" | "ready" | "error";
 
 export interface State {
   teams: Team[];
   cur: number;
   view: View;
+  status: LoadStatus;
+  saveError: boolean;
 }
 
-export const initialState = (): State => ({ teams: makeSeedTeams(), cur: CUR, view: "manager" });
+export const initialState = (): State => ({ teams: [], cur: 0, view: "manager", status: "loading", saveError: false });
 
 const newEngineer = (): Engineer => ({
   id: newId(), name: "New engineer", tenure: "< 4 months", level: "L3", onboarding: "Not Applicable", alloc: 1,
 });
 
 export type Action =
+  | { type: "HYDRATE"; cur: number; teams: Team[] }
+  | { type: "LOAD_ERROR" }
+  | { type: "SET_SAVE_ERROR"; value: boolean }
   | { type: "SET_VIEW"; view: View }
   | { type: "OPEN_TEAM"; team: number }
   | { type: "SET_WINDOW"; team: number; window: Window }
@@ -45,6 +53,12 @@ const mapTeam = (state: State, idx: number, fn: (t: Team) => Team): State => ({
 
 export function reducer(state: State, action: Action): State {
   switch (action.type) {
+    case "HYDRATE":
+      return { ...state, cur: action.cur, teams: action.teams, status: "ready" };
+    case "LOAD_ERROR":
+      return { ...state, status: "error" };
+    case "SET_SAVE_ERROR":
+      return { ...state, saveError: action.value };
     case "SET_VIEW":
       return { ...state, view: action.view };
     case "OPEN_TEAM":
@@ -120,8 +134,22 @@ export function reducer(state: State, action: Action): State {
 
 const StoreContext = createContext<{ state: State; dispatch: Dispatch<Action> } | null>(null);
 
-export function StoreProvider({ children }: { children: ReactNode }) {
+export function StoreProvider({ children, port }: { children: ReactNode; port?: StoragePort }) {
   const [state, dispatch] = useReducer(reducer, undefined, initialState);
+  const portRef = useRef<StoragePort>(port ?? createStoragePort());
+
+  useEffect(() => {
+    let cancelled = false;
+    portRef.current
+      .load()
+      .then((loaded) => {
+        if (cancelled) return;
+        dispatch({ type: "HYDRATE", cur: loaded?.cur ?? 0, teams: loaded?.teams ?? [] });
+      })
+      .catch(() => { if (!cancelled) dispatch({ type: "LOAD_ERROR" }); });
+    return () => { cancelled = true; };
+  }, []);
+
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 
