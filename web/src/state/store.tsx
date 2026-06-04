@@ -152,6 +152,17 @@ export function StoreProvider({ children, port }: { children: ReactNode; port?: 
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => {
+    if (state.status !== "ready") return;
+    const handle = setTimeout(() => {
+      portRef.current!
+        .save({ cur: state.cur, teams: state.teams })
+        .then(() => dispatch({ type: "SET_SAVE_ERROR", value: false }))
+        .catch(() => dispatch({ type: "SET_SAVE_ERROR", value: true }));
+    }, 600);
+    return () => clearTimeout(handle);
+  }, [state.teams, state.cur, state.status]);
+
   return <StoreContext.Provider value={{ state, dispatch }}>{children}</StoreContext.Provider>;
 }
 
