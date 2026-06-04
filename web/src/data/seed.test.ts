@@ -18,4 +18,14 @@ describe("seed org", () => {
     a[2].roster[0].name = "MUTATED";
     expect(makeSeedTeams()[2].roster[0].name).not.toBe("MUTATED");
   });
+  it("assigns a unique id to every team, engineer, and project", () => {
+    const teams = makeSeedTeams();
+    const ids = [
+      ...teams.map((t) => t.id),
+      ...teams.flatMap((t) => t.roster.map((e) => e.id)),
+      ...teams.flatMap((t) => t.projects.map((p) => p.id)),
+    ];
+    expect(ids.every((id) => typeof id === "string" && id.length > 0)).toBe(true);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
 });

@@ -5,6 +5,7 @@
 import { createContext, useContext, useReducer, type Dispatch, type ReactNode } from "react";
 import type { Team, Engineer, Window } from "../engine/types";
 import { makeSeedTeams, CUR } from "../data/seed";
+import { newId } from "../engine/ids";
 
 export type View = "manager" | "director" | "pm";
 
@@ -16,9 +17,9 @@ export interface State {
 
 export const initialState = (): State => ({ teams: makeSeedTeams(), cur: CUR, view: "manager" });
 
-const NEW_ENGINEER: Engineer = {
-  name: "New engineer", tenure: "< 4 months", level: "L3", onboarding: "Not Applicable", alloc: 1,
-};
+const newEngineer = (): Engineer => ({
+  id: newId(), name: "New engineer", tenure: "< 4 months", level: "L3", onboarding: "Not Applicable", alloc: 1,
+});
 
 export type Action =
   | { type: "SET_VIEW"; view: View }
@@ -60,7 +61,7 @@ export function reducer(state: State, action: Action): State {
         roster: t.roster.map((e, i) => (i === action.index ? { ...e, [action.field]: action.value } : e)),
       }));
     case "ADD_ENGINEER":
-      return mapTeam(state, action.team, (t) => ({ ...t, roster: [...t.roster, { ...NEW_ENGINEER }] }));
+      return mapTeam(state, action.team, (t) => ({ ...t, roster: [...t.roster, newEngineer()] }));
     case "REMOVE_ENGINEER":
       return mapTeam(state, action.team, (t) => ({
         ...t,
@@ -105,7 +106,7 @@ export function reducer(state: State, action: Action): State {
         ...t, ktlo: t.ktlo.map((f, i) => (i === action.index ? { ...f, ideal: action.ideal } : f)),
       }));
     case "ADD_PROJECT":
-      return mapTeam(state, action.team, (t) => ({ ...t, projects: [...t.projects, { name: "New project", est: 0.5, team: [] }] }));
+      return mapTeam(state, action.team, (t) => ({ ...t, projects: [...t.projects, { id: newId(), name: "New project", est: 0.5, team: [] }] }));
     case "REMOVE_PROJECT":
       return mapTeam(state, action.team, (t) => ({ ...t, projects: t.projects.filter((_, i) => i !== action.index) }));
     case "EDIT_PROJECT":

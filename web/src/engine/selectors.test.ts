@@ -7,21 +7,22 @@ import { personLoads } from "./selectors";
 import type { Team } from "./types";
 
 const aurora: Team = {
+  id: "t1",
   name: "Aurora",
   window: "quarter",
   overhead: defaultOverhead(),
   ktlo: defaultKtlo(),
   roster: [
-    { name: "Alex Rivera", tenure: "> 4 years", level: "L3", onboarding: "Mentor: Month 1", alloc: 1 },
-    { name: "Sam Chen", tenure: "1–2 years", level: "L3", onboarding: "Mentor: Month 1", alloc: 1 },
-    { name: "Jordan Lee", tenure: "> 4 years", level: "L3", onboarding: "Not Applicable", alloc: 1 },
-    { name: "Priya Nair", tenure: "< 4 months", level: "L2", onboarding: "New Hire: Month 3", alloc: 1 },
-    { name: "Diego Torres", tenure: "< 4 months", level: "Intern", onboarding: "New Hire: Month 1", alloc: 0.5 },
+    { id: "e1", name: "Alex Rivera", tenure: "> 4 years", level: "L3", onboarding: "Mentor: Month 1", alloc: 1 },
+    { id: "e2", name: "Sam Chen", tenure: "1–2 years", level: "L3", onboarding: "Mentor: Month 1", alloc: 1 },
+    { id: "e3", name: "Jordan Lee", tenure: "> 4 years", level: "L3", onboarding: "Not Applicable", alloc: 1 },
+    { id: "e4", name: "Priya Nair", tenure: "< 4 months", level: "L2", onboarding: "New Hire: Month 3", alloc: 1 },
+    { id: "e5", name: "Diego Torres", tenure: "< 4 months", level: "Intern", onboarding: "New Hire: Month 1", alloc: 0.5 },
   ],
   projects: [
-    { name: "Search revamp", est: 1.2, team: [0, 1] },
-    { name: "Billing migration", est: 0.8, team: [2] },
-    { name: "Onboarding tooling", est: 0.3, team: [3] },
+    { id: "p1", name: "Search revamp", est: 1.2, team: [0, 1] },
+    { id: "p2", name: "Billing migration", est: 0.8, team: [2] },
+    { id: "p3", name: "Onboarding tooling", est: 0.3, team: [3] },
   ],
 };
 
@@ -80,7 +81,7 @@ describe("personLoads", () => {
 import { rollup, pmVerdict } from "./selectors";
 
 describe("rollup and pmVerdict", () => {
-  const teams = [aurora, { ...aurora, name: "B", projects: [{ name: "X", est: 99, team: [0] }] }];
+  const teams = [aurora, { ...aurora, name: "B", projects: [{ id: "p4", name: "X", est: 99, team: [0] }] }];
 
   it("rollup returns per-team fit and group net = sum of fits", () => {
     const r = rollup(teams);
