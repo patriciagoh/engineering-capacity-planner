@@ -122,6 +122,16 @@ Actions.
 
 ---
 
+## Authentication (supabase build)
+
+The real app (`VITE_BACKEND=supabase`) is gated by email + password login. There is
+**no public sign-up** — create your account in the Supabase dashboard
+(Authentication ▸ Users ▸ Add user, with auto-confirm). Reset a forgotten password the
+same way (Authentication ▸ Users ▸ the user ▸ send recovery / set a new password). The
+public demo (`VITE_BACKEND=local`, the default) has no login and stores nothing.
+
+---
+
 ## Tech stack
 
 - React 19, TypeScript, Vite, Tailwind CSS 3
